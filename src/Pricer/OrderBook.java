@@ -14,9 +14,9 @@ public class OrderBook {
 	int orderID;
 	int size;
 
-	static Comparator<Pricer> comparatorSell = new Comparator<Pricer>() {
+	static Comparator<Pricer> comparator = new Comparator<Pricer>() {
 		public int compare(Pricer p1, Pricer p2) {
-			return (int) ((p1.price - p2.price) * 100);
+			return (int) ((p2.price - p1.price) * 100);
 		}
 	};
 
@@ -24,22 +24,16 @@ public class OrderBook {
 			.synchronizedList(new ArrayList<Pricer>() {
 				public boolean add(Pricer p) {
 					super.add(p);
-					Collections.sort(listSell, comparatorSell);
+					Collections.sort(listSell, comparator);
 					return true;
 				}
 			});
-	
-	static Comparator<Pricer> comparatorBuy = new Comparator<Pricer>() {
-		public int compare(Pricer p1, Pricer p2) {
-			return (int) ((p2.price - p1.price) * 100);
-		}
-	};
-	
+
 	static List<Pricer> listBuy = Collections
 			.synchronizedList(new ArrayList<Pricer>() {
 				public boolean add(Pricer p) {
 					super.add(p);
-					Collections.sort(listBuy, comparatorBuy);
+					Collections.sort(listBuy, comparator);
 					return true;
 				}
 			});
@@ -89,55 +83,73 @@ public class OrderBook {
 	}
 
 	public void add(Pricer p) {
-		int min = Integer.MAX_VALUE, max = Integer.MIN_VALUE;
-		if(p.side.compareTo("S") == 0){
-			listSell.add(p);
-			//for(int i = 0; i < listBuy.size(); i++){
-			int i = 0;
-			outerloop:
-			while(i < listBuy.size()){
-				if(listBuy.get(i).price >= p.price){
-					if(listBuy.get(i).size > p.size){
-						listBuy.get(i).size -= p.size;
-						listSell.remove(listSell.indexOf(p));
-						break outerloop;
-					}
-					else if(listBuy.get(i).size == p.size) {
-						listBuy.remove(i);
-						listSell.remove(listSell.indexOf(p));
-						i++;
-					}
-					else {
-						p.size -= listBuy.get(i).size;
-					}
-				}
-				else {
+		//int min = Integer.MAX_VALUE, max = Integer.MIN_VALUE;
+		if (p.side.compareTo("S") == 0) {
+			boolean isSamePrice = false;
+			int j;
+			for (j = 0; j < listSell.size(); j++) {
+				if (listSell.get(j).price == p.price) {
+					isSamePrice = true;
 					break;
 				}
 			}
-		}
-		else if(p.side.compareTo("B") == 0) {
-			listBuy.add(p);
-			int i = 0;
-			outerloop:
-			while(i < listSell.size()){
-				if(listSell.get(i).price <= p.price){
-					if(listSell.get(i).size > p.size){
-						listSell.get(i).size -= p.size;
-						listBuy.remove(listBuy.indexOf(p));
-						break outerloop;
-					}
-					else if(listSell.get(i).size == p.size) {
-						listSell.remove(i);
-						listBuy.remove(listBuy.indexOf(p));
-						i++;
-					}
-					else {
-						p.size -= listSell.get(i).size;
+			if (isSamePrice) {
+				listSell.get(j).size += p.size;
+			} else {
+				listSell.add(p);
+				// for(int i = 0; i < listBuy.size(); i++){
+				int i = 0;
+				outerloop: while (i < listBuy.size()) {
+					if (listBuy.get(i).price >= p.price) {
+						if (listBuy.get(i).size > p.size) {
+							listBuy.get(i).size -= p.size;
+							listSell.remove(listSell.indexOf(p));
+							break outerloop;
+						} else if (listBuy.get(i).size == p.size) {
+							listBuy.remove(i);
+							listSell.remove(listSell.indexOf(p));
+							break outerloop;
+						} else {
+							p.size -= listBuy.get(i).size;
+							listBuy.remove(i);
+						}
+					} else {
+						break;
 					}
 				}
-				else {
+			}
+		} else if (p.side.compareTo("B") == 0) {
+			boolean isSamePrice = false;
+			int j;
+			for (j = 0; j < listBuy.size(); j++) {
+				if (listBuy.get(j).price == p.price) {
+					isSamePrice = true;
 					break;
+				}
+			}
+			if (isSamePrice) {
+				listBuy.get(j).size += p.size;
+			} else {
+				listBuy.add(p);
+				int i = listSell.size() - 1;
+				outerloop: while (i > 0) {
+					if (listSell.get(i).price <= p.price) {
+						if (listSell.get(i).size > p.size) {
+							listSell.get(i).size -= p.size;
+							listBuy.remove(listBuy.indexOf(p));
+							break outerloop;
+						} else if (listSell.get(i).size == p.size) {
+							listSell.remove(i);
+							listBuy.remove(listBuy.indexOf(p));
+							break outerloop;
+						} else {
+							p.size -= listSell.get(i).size;
+							listSell.remove(i);
+							i--;
+						}
+					} else {
+						break;
+					}
 				}
 			}
 		}
@@ -145,7 +157,7 @@ public class OrderBook {
 
 	public void reduce(Pricer p) {
 		boolean check = false;
-		if(p.side.compareTo("S") == 0){
+		if (p.side.compareTo("S") == 0) {
 			for (int i = 0; i < listSell.size(); i++) {
 				if (p.orderID == listSell.get(i).orderID) {
 					check = true;
@@ -161,8 +173,7 @@ public class OrderBook {
 				}
 
 			}
-		}
-		else if(p.side.compareTo("B") == 0) {
+		} else if (p.side.compareTo("B") == 0) {
 			for (int i = 0; i < listBuy.size(); i++) {
 				if (p.orderID == listBuy.get(i).orderID) {
 					check = true;
@@ -179,7 +190,7 @@ public class OrderBook {
 
 			}
 		}
-		
+
 	}
 
 	// A S 44.26 100
