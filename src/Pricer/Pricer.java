@@ -1,12 +1,8 @@
 package Pricer;
 
-import java.util.ArrayList;
 import java.util.Calendar;
-import java.util.Comparator;
-import java.util.Collections;
-import java.util.List;
 
-public class Pricer extends Object implements Comparator<Pricer> {
+public class Pricer extends Object {
 
 	long timestamp;
 	String message;
@@ -16,6 +12,7 @@ public class Pricer extends Object implements Comparator<Pricer> {
 	double price;
 	int size;
 
+	// 5 constructors:
 	// Add order with ID (6 param)
 	public Pricer(long timestamp, String message, String orderID, String side,
 			double price, int size) {
@@ -81,6 +78,7 @@ public class Pricer extends Object implements Comparator<Pricer> {
 		this.size = size;
 	}
 
+	//Overridden equals method for comparison with orders' orderID
 	public boolean equals(Object p) {
 		if (this.orderID == ((Pricer) p).orderID) {
 			return true;
@@ -89,14 +87,12 @@ public class Pricer extends Object implements Comparator<Pricer> {
 		}
 	}
 
-	public int compare(Pricer p1, Pricer p2) {
-		return (int) ((p1.price - p2.price) * 100);
-	}
-
+	//toString method for optimized printing.
+	//Format: timestamp ID buy/sell
 	public String toString() {
 		String s = "";
+		s += this.timestamp + "\t";
 		if (this.message.equals("A") && this.side.equals("B")) {
-
 			s += this.orderID + "\t" + this.price + "\t" + this.size;
 		} else if (this.message.equals("A") && this.side.equals("S")) {
 			s += this.orderID + "\t\t\t\t" + this.price + "\t" + this.size;

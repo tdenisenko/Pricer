@@ -1,19 +1,29 @@
 package Pricer;
 
-import java.util.Scanner;
+import java.io.BufferedReader;
+import java.io.FileReader;
+import java.io.IOException;
+
+/*
+ * This class reads thousands of orders from the file "pricer.in" and adds them to the Order Book.
+ */
 
 public class Test {
-	
-	public static void main(String[] args) {
-		Scanner inp = new Scanner(System.in);
+
+	public static void main(String[] args) throws IOException, InterruptedException {
 		String a;
 		Pricer p = null;
-		
-		do {
-			a = inp.nextLine();
-			OrderBook o = new OrderBook(a, p);
-			
+
+		BufferedReader br = new BufferedReader(new FileReader("pricer.in"));
+		try {
+			while ((a = br.readLine()) != null) {
+				//System.out.println(a + " ->");
+				OrderBook o = new OrderBook(a, p);
+				//Thread.sleep(100);
+			}
+		} finally {
+			br.close();
 		}
-		while(inp.hasNextLine());
+		System.out.println("Done!");
 	}
 }
