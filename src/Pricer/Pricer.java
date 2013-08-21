@@ -1,3 +1,5 @@
+//Made by Timothy Denisenko.
+
 package Pricer;
 
 import java.util.Calendar;
@@ -78,7 +80,7 @@ public class Pricer extends Object {
 		this.size = size;
 	}
 
-	//Overridden equals method for comparison with orders' orderID
+	// Overridden equals method for comparison with orders' orderID
 	public boolean equals(Object p) {
 		if (this.orderID == ((Pricer) p).orderID) {
 			return true;
@@ -87,8 +89,8 @@ public class Pricer extends Object {
 		}
 	}
 
-	//toString method for optimized printing.
-	//Format: timestamp ID buy/sell
+	// toString method for optimized printing.
+	// Format: timestamp ID buy/sell
 	public String toString() {
 		String s = "";
 		s += this.timestamp + "\t";

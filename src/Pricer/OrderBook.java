@@ -1,3 +1,5 @@
+//Made by Timothy Denisenko.
+
 package Pricer;
 
 import java.util.ArrayList;

@@ -1,3 +1,5 @@
+//Made by Timothy Denisenko.
+
 package Pricer;
 
 import java.io.BufferedReader;
@@ -10,20 +12,22 @@ import java.io.IOException;
 
 public class Test {
 
-	public static void main(String[] args) throws IOException, InterruptedException {
+	public static void main(String[] args) throws IOException,
+			InterruptedException {
 		String a;
 		Pricer p = null;
 
 		BufferedReader br = new BufferedReader(new FileReader("pricer.in"));
 		try {
 			while ((a = br.readLine()) != null) {
-				//System.out.println(a + " ->");
+				// System.out.println(a + " ->");
 				OrderBook o = new OrderBook(a, p);
-				//Thread.sleep(200);
+				// Thread.sleep(200);
 			}
 		} finally {
 			br.close();
 		}
-		System.out.println("Done!\nTotal orders processed: " + OrderBook.ORDERBOOK_COUNT);
+		System.out.println("Done!\nTotal orders processed: "
+				+ OrderBook.ORDERBOOK_COUNT);
 	}
 }
