@@ -1,4 +1,4 @@
-//Made by Timothy Denisenko.
+//Made by Timothy Denisenko
 
 package Pricer;
 
