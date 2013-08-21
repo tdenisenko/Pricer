@@ -11,12 +11,15 @@ public class OrderBook {
 	String message;
 	String side;
 	double price;
-	int orderID;
+	String orderID;
 	int size;
 
-	static Comparator<Pricer> comparatorSell = new Comparator<Pricer>() {
+	static Comparator<Pricer> comparator = new Comparator<Pricer>() {
 		public int compare(Pricer p1, Pricer p2) {
-			return (int) ((p1.price - p2.price) * 100);
+			if((int) ((p2.price - p1.price) * 100) == 0){
+				return (int) (p2.timestamp - p1.timestamp);
+			}
+			return (int) ((p2.price - p1.price) * 100);
 		}
 	};
 
@@ -24,22 +27,16 @@ public class OrderBook {
 			.synchronizedList(new ArrayList<Pricer>() {
 				public boolean add(Pricer p) {
 					super.add(p);
-					Collections.sort(listSell, comparatorSell);
+					Collections.sort(listSell, comparator);
 					return true;
 				}
 			});
-	
-	static Comparator<Pricer> comparatorBuy = new Comparator<Pricer>() {
-		public int compare(Pricer p1, Pricer p2) {
-			return (int) ((p2.price - p1.price) * 100);
-		}
-	};
-	
+
 	static List<Pricer> listBuy = Collections
 			.synchronizedList(new ArrayList<Pricer>() {
 				public boolean add(Pricer p) {
 					super.add(p);
-					Collections.sort(listBuy, comparatorBuy);
+					Collections.sort(listBuy, comparator);
 					return true;
 				}
 			});
@@ -52,6 +49,16 @@ public class OrderBook {
 	public void init(String a, Pricer p) {
 		String[] order = a.split(" ");
 		switch (order.length) {
+		case 6:
+			timestamp = Long.valueOf(order[0]);
+			message = order[1];
+			orderID = order[2];
+			side = order[3];
+			price = Double.valueOf(order[4]);
+			size = Integer.valueOf(order[5]);
+			p = new Pricer(timestamp, message, orderID, side, price, size);
+			add(p);
+			break;
 		case 5:
 			timestamp = Long.valueOf(order[0]);
 			message = order[1];
@@ -72,7 +79,7 @@ public class OrderBook {
 			} else {
 				timestamp = Long.valueOf(order[0]);
 				message = order[1];
-				orderID = Integer.valueOf(order[2]);
+				orderID = order[2];
 				size = Integer.valueOf(order[3]);
 				p = new Pricer(timestamp, message, orderID, size);
 				reduce(p);
@@ -80,7 +87,7 @@ public class OrderBook {
 			break;
 		case 3:
 			message = order[0];
-			orderID = Integer.valueOf(order[1]);
+			orderID = order[1];
 			size = Integer.valueOf(order[2]);
 			p = new Pricer(message, orderID, size);
 			reduce(p);
@@ -89,97 +96,89 @@ public class OrderBook {
 	}
 
 	public void add(Pricer p) {
-		int min = Integer.MAX_VALUE, max = Integer.MIN_VALUE;
-		if(p.side.compareTo("S") == 0){
-			listSell.add(p);
-			//for(int i = 0; i < listBuy.size(); i++){
-			int i = 0;
-			outerloop:
-			while(i < listBuy.size()){
-				if(listBuy.get(i).price >= p.price){
-					if(listBuy.get(i).size > p.size){
-						listBuy.get(i).size -= p.size;
-						listSell.remove(listSell.indexOf(p));
-						break outerloop;
-					}
-					else if(listBuy.get(i).size == p.size) {
-						listBuy.remove(i);
-						listSell.remove(listSell.indexOf(p));
-						i++;
-					}
-					else {
-						p.size -= listBuy.get(i).size;
-					}
-				}
-				else {
-					break;
-				}
-			}
-		}
-		else if(p.side.compareTo("B") == 0) {
-			listBuy.add(p);
-			int i = 0;
-			outerloop:
-			while(i < listSell.size()){
-				if(listSell.get(i).price <= p.price){
-					if(listSell.get(i).size > p.size){
-						listSell.get(i).size -= p.size;
-						listBuy.remove(listBuy.indexOf(p));
-						break outerloop;
-					}
-					else if(listSell.get(i).size == p.size) {
-						listSell.remove(i);
-						listBuy.remove(listBuy.indexOf(p));
-						i++;
-					}
-					else {
-						p.size -= listSell.get(i).size;
+		if (p.side.compareTo("S") == 0) {
+				listSell.add(p);
+				int i = 0;
+				outerloop: while (i < listBuy.size()) {
+					if (listBuy.get(i).price >= p.price) {
+						if (listBuy.get(i).size > p.size) {
+							listBuy.get(i).size -= p.size;
+							listSell.remove(listSell.indexOf(p));
+							break outerloop;
+						} else if (listBuy.get(i).size == p.size) {
+							listBuy.remove(i);
+							listSell.remove(listSell.indexOf(p));
+							break outerloop;
+						} else {
+							p.size -= listBuy.get(i).size;
+							listBuy.remove(i);
+						}
+					} else {
+						break;
 					}
 				}
-				else {
-					break;
+		} else if (p.side.compareTo("B") == 0) {
+				listBuy.add(p);
+				int i = listSell.size() - 1;
+				outerloop: while (i >= 0) {
+					if (listSell.get(i).price <= p.price) {
+						if (listSell.get(i).size > p.size) {
+							listSell.get(i).size -= p.size;
+							listBuy.remove(listBuy.indexOf(p));
+							break outerloop;
+						} else if (listSell.get(i).size == p.size) {
+							listSell.remove(i);
+							listBuy.remove(listBuy.indexOf(p));
+							break outerloop;
+						} else {
+							p.size -= listSell.get(i).size;
+							listSell.remove(i);
+							i--;
+						}
+					} else {
+						break;
+					}
 				}
-			}
 		}
 	}
 
 	public void reduce(Pricer p) {
-		boolean check = false;
-		if(p.side.compareTo("S") == 0){
-			for (int i = 0; i < listSell.size(); i++) {
-				if (p.orderID == listSell.get(i).orderID) {
-					check = true;
-					break;
-				}
-			}
-			if (check) {
-				int res = listSell.get(listSell.indexOf(p)).size - p.size;
-				if (res <= 0) {
-					listSell.remove(p);
-				} else {
-					listSell.get(listSell.indexOf(p)).size = res;
-				}
-
+		int i;
+		for(i = 0; i < listSell.size(); i++){
+			if(p.orderID.compareTo(listSell.get(i).orderID) == 0){
+				p.side = "S";
+				break;
 			}
 		}
-		else if(p.side.compareTo("B") == 0) {
-			for (int i = 0; i < listBuy.size(); i++) {
-				if (p.orderID == listBuy.get(i).orderID) {
-					check = true;
-					break;
-				}
-			}
-			if (check) {
-				int res = listBuy.get(listBuy.indexOf(p)).size - p.size;
-				if (res <= 0) {
-					listBuy.remove(p);
-				} else {
-					listBuy.get(listBuy.indexOf(p)).size = res;
-				}
-
+		int j;
+		for(j = 0; j < listBuy.size(); j++){
+			if(p.orderID.compareTo(listBuy.get(j).orderID) == 0){
+				p.side = "B";
+				break;
 			}
 		}
-		
+		int res;
+		if(p.side.compareTo("S") == 0) {
+			res = listSell.get(i).size - p.size;
+			if (res <= 0) {
+				listSell.remove(i);
+			} else {
+				listSell.get(i).size = res;
+			}
+		}
+		else if (p.side.compareTo("B") == 0) {
+			res = listBuy.get(j).size - p.size;
+			if (res <= 0) {
+				listBuy.remove(j);
+			} else {
+				listBuy.get(j).size = res;
+			}
+		}
+		else {
+			System.err.println("Wrong reduce ID!");
+			return;
+		}
+
 	}
 
 	// A S 44.26 100
@@ -195,10 +194,5 @@ public class OrderBook {
 		}
 		return s;
 	}
-
-	// @Override
-	// public int compareTo(Pricer p) {
-	// return (int) ((list.get(list.indexOf(p)).price - p.price) * 100);
-	// }
 
 }
