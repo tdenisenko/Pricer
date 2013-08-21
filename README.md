@@ -26,4 +26,7 @@ See further details and order types in comments on the code.
 
 Test.java
 ======
-This class tests orders from a given file (pricer.in) that includes over 1 million orders.
+This class tests\n orders from a given file (pricer.in) that includes over 1 million orders.
+
+Functions of Pricer Project
+======
