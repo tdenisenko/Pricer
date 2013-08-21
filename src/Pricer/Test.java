@@ -19,11 +19,11 @@ public class Test {
 			while ((a = br.readLine()) != null) {
 				//System.out.println(a + " ->");
 				OrderBook o = new OrderBook(a, p);
-				//Thread.sleep(100);
+				//Thread.sleep(200);
 			}
 		} finally {
 			br.close();
 		}
-		System.out.println("Done!");
+		System.out.println("Done!\nTotal orders processed: " + OrderBook.ORDERBOOK_COUNT);
 	}
 }

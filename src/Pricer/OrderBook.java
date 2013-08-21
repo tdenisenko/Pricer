@@ -15,10 +15,11 @@ import java.util.List;
 
 public class OrderBook {
 
-	//Keeps the count of total orders given
+	// Keeps the count of total orders given
 	static int ORDERBOOK_COUNT = 0;
 
-	//Comparator for sorting the orders by price (.00 precision) and by timestamp is prices are same.
+	// Comparator for sorting the orders by price (.00 precision) and by
+	// timestamp is prices are same.
 	static Comparator<Pricer> comparator = new Comparator<Pricer>() {
 		public int compare(Pricer p1, Pricer p2) {
 			if ((int) ((p2.price - p1.price) * 1000) == 0) {
@@ -28,7 +29,7 @@ public class OrderBook {
 		}
 	};
 
-	//The Ask List (always sorted and synchronized)
+	// The Ask List (always sorted and synchronized)
 	static List<Pricer> listSell = Collections
 			.synchronizedList(new ArrayList<Pricer>() {
 				public boolean add(Pricer p) {
@@ -38,7 +39,7 @@ public class OrderBook {
 				}
 			});
 
-	//The Bid List (always sorted and synchronized)
+	// The Bid List (always sorted and synchronized)
 	static List<Pricer> listBuy = Collections
 			.synchronizedList(new ArrayList<Pricer>() {
 				public boolean add(Pricer p) {
@@ -48,15 +49,18 @@ public class OrderBook {
 				}
 			});
 
-	//The constructor. It calls init function once an object is created and prints the Order Book once every 100 orders has been submitted.
-	public OrderBook(String a, Pricer p) {
+	// The constructor. It calls init function once an object is created and
+	// prints the Order Book once every 100 orders has been submitted.
+	public OrderBook(String a, Pricer p) throws InterruptedException {
 		this.init(a, p);
-		if(OrderBook.ORDERBOOK_COUNT++ % 100 == 0){
+		if (OrderBook.ORDERBOOK_COUNT++ % 100 == 0) {
 			System.out.println(this.toString());
+			// Thread.sleep(500); //Activate if you want to watch it stream
 		}
 	}
 
-	//The initiator function. It has 5 cases of recognizing different types of orders, explained below.
+	// The initiator function. It has 5 cases of recognizing different types of
+	// orders, explained below.
 	public void init(String a, Pricer p) {
 		long timestamp; // time passed since midnight (00:00) in miliseconds
 		String message; // "A" for ask or bid, "R" for reduce
@@ -64,12 +68,12 @@ public class OrderBook {
 		double price; // price with a precision of .00
 		String orderID; // an ID which may include alphanumeric characters.
 		int size; // size of the order
-		//Splits order by white spaces
+		// Splits order by white spaces
 		String[] order = a.split(" ");
-		//Judging by the order's length (3 to 6 words)
+		// Judging by the order's length (3 to 6 words)
 		switch (order.length) {
-		//Format: "Timestamp message orderID side price size"
-		//Ex.: "28800538 A 32s S 44.26 100"
+		// Format: "Timestamp message orderID side price size"
+		// Ex.: "28800538 A 32s S 44.26 100"
 		case 6:
 			timestamp = Long.valueOf(order[0]);
 			message = order[1];
@@ -80,8 +84,8 @@ public class OrderBook {
 			p = new Pricer(timestamp, message, orderID, side, price, size);
 			add(p);
 			break;
-		//Format: "Timestamp message side price size" (ID is auto-generated)
-		//Ex.: "28800538 A B 44.26 100"
+		// Format: "Timestamp message side price size" (ID is auto-generated)
+		// Ex.: "28800538 A B 44.26 100"
 		case 5:
 			timestamp = Long.valueOf(order[0]);
 			message = order[1];
@@ -92,8 +96,9 @@ public class OrderBook {
 			add(p);
 			break;
 		case 4:
-			//Format: "message side price size" (No timestamp format, ID is auto-generated)
-			//Ex.: "A B 44.26 100"
+			// Format: "message side price size" (No timestamp format, ID is
+			// auto-generated)
+			// Ex.: "A B 44.26 100"
 			if (order[0].length() <= 1) {
 				message = order[0];
 				side = order[1];
@@ -101,8 +106,8 @@ public class OrderBook {
 				size = Integer.valueOf(order[3]);
 				p = new Pricer(message, side, price, size);
 				add(p);
-			//Format: "Timestamp message orderID size" (reduce orders)
-			//Ex.: "28800538 R 32s 100"
+				// Format: "Timestamp message orderID size" (reduce orders)
+				// Ex.: "28800538 R 32s 100"
 			} else {
 				timestamp = Long.valueOf(order[0]);
 				message = order[1];
@@ -112,8 +117,8 @@ public class OrderBook {
 				reduce(p);
 			}
 			break;
-		//Format: "message orderID size" (No timestamp format, reduce orders)
-		//Ex.: "R 32s 50"
+		// Format: "message orderID size" (No timestamp format, reduce orders)
+		// Ex.: "R 32s 50"
 		case 3:
 			message = order[0];
 			orderID = order[1];
@@ -121,32 +126,39 @@ public class OrderBook {
 			p = new Pricer(message, orderID, size);
 			reduce(p);
 			break;
+		default:
+			System.err.println("Wrong order format.");
+			break;
 		}
 	}
 
-	//Adds order to the specified list
+	// Adds order to the specified list
 	public void add(Pricer p) {
 		if (p.side.compareTo("S") == 0) {
 			listSell.add(p);
 			int i = 0;
 			outerloop: while (i < listBuy.size()) {
 				if (listBuy.get(i).price >= p.price) {
-					//Case 1: Sell order with a smaller size than the highest buy order
+					// Case 1: Sell order with a smaller size than the highest
+					// buy order
 					if (listBuy.get(i).size > p.size) {
 						listBuy.get(i).size -= p.size;
 						listSell.remove(listSell.indexOf(p));
 						break outerloop;
-					//Case 2: Sell order with the same size as the highest buy order
+						// Case 2: Sell order with the same size as the highest
+						// buy order
 					} else if (listBuy.get(i).size == p.size) {
 						listBuy.remove(i);
 						listSell.remove(listSell.indexOf(p));
 						break outerloop;
-					//Case 3: Sell order with bigger size than the highest buy order (continues iteration)
+						// Case 3: Sell order with bigger size than the highest
+						// buy order (continues iteration)
 					} else {
 						p.size -= listBuy.get(i).size;
 						listBuy.remove(i);
 					}
-				//Case 4: Sell order with a higher price than the highest buy order (just adds the order to list)
+					// Case 4: Sell order with a higher price than the highest
+					// buy order (just adds the order to list)
 				} else {
 					break;
 				}
@@ -156,23 +168,27 @@ public class OrderBook {
 			int i = listSell.size() - 1;
 			outerloop: while (i >= 0) {
 				if (listSell.get(i).price <= p.price) {
-					//Case 5: Buy order with a smaller size than the lowest sell order
+					// Case 5: Buy order with a smaller size than the lowest
+					// sell order
 					if (listSell.get(i).size > p.size) {
 						listSell.get(i).size -= p.size;
 						listBuy.remove(listBuy.indexOf(p));
 						break outerloop;
-					//Case 6: Buy order with the same size as the lowest sell order
+						// Case 6: Buy order with the same size as the lowest
+						// sell order
 					} else if (listSell.get(i).size == p.size) {
 						listSell.remove(i);
 						listBuy.remove(listBuy.indexOf(p));
 						break outerloop;
-					//Case 7: Buy order with a bigger size than the lowest sell order
+						// Case 7: Buy order with a bigger size than the lowest
+						// sell order
 					} else {
 						p.size -= listSell.get(i).size;
 						listSell.remove(i);
 						i--;
 					}
-				//Case 8: Buy order with a lower price than the lowest sell order
+					// Case 8: Buy order with a lower price than the lowest sell
+					// order
 				} else {
 					break;
 				}
@@ -180,8 +196,10 @@ public class OrderBook {
 		}
 	}
 
-	//Reduces (or removes) the order with the specified orderID
-	//Finds if the ID given is sell or buy order, removed the order from list if the reduction size is bigger than the order itself, reduces the order's size otherwise.
+	// Reduces (or removes) the order with the specified orderID
+	// Finds if the ID given is sell or buy order, removed the order from list
+	// if the reduction size is bigger than the order itself, reduces the
+	// order's size otherwise.
 	public void reduce(Pricer p) {
 		int i;
 		for (i = 0; i < listSell.size(); i++) {
@@ -198,10 +216,11 @@ public class OrderBook {
 			}
 		}
 		int res;
+		// This order has been executed or never existed.
 		if (p.side == null) {
-			System.err.println("Wrong reduce ID!");
+			// System.err.println("Wrong reduce order\nThis order has been executed already or it never existed.");
 			return;
-		//Case 9: Reduce order for sell orders
+			// Case 9: Reduce order for sell orders
 		} else if (p.side.compareTo("B") == 0) {
 			res = listBuy.get(j).size - p.size;
 			if (res <= 0) {
@@ -210,7 +229,7 @@ public class OrderBook {
 				listBuy.get(j).size = res;
 			}
 		}
-		//Case 10: Reduce order for buy orders
+		// Case 10: Reduce order for buy orders
 		else if (p.side.compareTo("S") == 0) {
 			res = listSell.get(i).size - p.size;
 			if (res <= 0) {
@@ -221,15 +240,14 @@ public class OrderBook {
 		}
 
 	}
-	
-	//Printing the Order Book with a limit of 10 for both Sell and Buy orders
+
+	// Printing the Order Book with a limit of 10 for both Sell and Buy orders
 	public String toString() {
 		String s = "\t\t\tBuy Orders\t\tSell Orders\n";
 		int i;
-		if(listSell.size() >= 10){
+		if (listSell.size() >= 10) {
 			i = listSell.size() - 10;
-		}
-		else {
+		} else {
 			i = 0;
 		}
 		while (i < listSell.size()) {
