@@ -2,6 +2,7 @@ Pricer project by Timothy Denisenko
 ======
 
 This project is an example of implementation of simple Order Book and its functions in Java.
+There are currently 2 types of orders; Limit orders and reduce order.
 
 Compiled and tested in:
 Eclipse IDE for Java Developers
