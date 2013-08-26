@@ -412,7 +412,7 @@ public class OrderBook {
 	
 	// Printing the Order Book with a limit of 10 for both Sell and Buy orders
 	public String toString() {
-		String s = "\t\t\tBuy Orders\t\tSell Orders\n";
+		String s = "\t\t\tBuy Orders\t\tSell Orders\tHidden?\n";
 		int i;
 		if (listSell.size() >= 10) {
 			i = listSell.size() - 10;

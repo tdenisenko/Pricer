@@ -27,6 +27,6 @@ public class Test {
 			br.close();
 		}
 		System.out.println("Done!\nTotal orders processed: "
-				+ OrderBook.ORDERBOOK_COUNT);
+				+ Pricer.NUMBER_OF_ORDERS);
 	}
 }

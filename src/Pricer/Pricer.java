@@ -112,9 +112,9 @@ public class Pricer extends Object {
 		} else if (this.message == "M" && this.side == 'S') {
 			s += this.orderID + "\t\t\t\tMarket\t" + this.size;
 		}else if (this.message == "H" && this.side == 'B') {
-			s += this.orderID + "\t" + this.price + "\t" + this.size + " (HIDDEN)";
+			s += this.orderID + "\t" + this.price + "\t" + this.size + "\t(HIDDEN)";
 		} else if (this.message == "H" && this.side == 'S') {
-			s += this.orderID + "\t\t\t(HIDDEN) " + this.price + "\t" + this.size;
+			s += this.orderID + "\t\t\t\t" + this.price + "\t" + this.size + "\t(HIDDEN)";
 		}
 		return s;
 	}
