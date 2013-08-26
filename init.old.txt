@@ -1,0 +1,72 @@
+// The initiator function. It has 5 cases of recognizing different types of
+	// orders, explained below.
+	public void init(String a, Pricer p) {
+		long timestamp; // time passed since midnight (00:00) in miliseconds
+		String message; // "A" for ask or bid, "R" for reduce
+		String side; // "S" for sell(ask) "B" for buy(bid)
+		double price; // price with a precision of .00
+		String orderID; // an ID which may include alphanumeric characters.
+		int size; // size of the order
+		// Splits order by white spaces
+		String[] order = a.split(" ");
+		// Judging by the order's length (3 to 6 words)
+		switch (order.length) {
+		// Format: "Timestamp message orderID side price size"
+		// Ex.: "28800538 A 32s S 44.26 100"
+		case 6:
+			timestamp = Long.valueOf(order[0]);
+			message = order[1];
+			orderID = order[2];
+			side = order[3];
+			price = Double.valueOf(order[4]);
+			size = Integer.valueOf(order[5]);
+			p = new Pricer(timestamp, message, orderID, side, price, size);
+			add(p);
+			break;
+		// Format: "Timestamp message side price size" (ID is auto-generated)
+		// Ex.: "28800538 A B 44.26 100"
+		case 5:
+			timestamp = Long.valueOf(order[0]);
+			message = order[1];
+			side = order[2];
+			price = Double.valueOf(order[3]);
+			size = Integer.valueOf(order[4]);
+			p = new Pricer(timestamp, message, side, price, size);
+			add(p);
+			break;
+		case 4:
+			// Format: "message side price size" (No timestamp format, ID is
+			// auto-generated)
+			// Ex.: "A B 44.26 100"
+			if (order[0].length() <= 1) {
+				message = order[0];
+				side = order[1];
+				price = Double.valueOf(order[2]);
+				size = Integer.valueOf(order[3]);
+				p = new Pricer(message, side, price, size);
+				add(p);
+				// Format: "Timestamp message orderID size" (reduce orders)
+				// Ex.: "28800538 R 32s 100"
+			} else {
+				timestamp = Long.valueOf(order[0]);
+				message = order[1];
+				orderID = order[2];
+				size = Integer.valueOf(order[3]);
+				p = new Pricer(timestamp, message, orderID, size);
+				reduce(p);
+			}
+			break;
+		// Format: "message orderID size" (No timestamp format, reduce orders)
+		// Ex.: "R 32s 50"
+		case 3:
+			message = order[0];
+			orderID = order[1];
+			size = Integer.valueOf(order[2]);
+			p = new Pricer(message, orderID, size);
+			reduce(p);
+			break;
+		default:
+			System.err.println("Wrong order format.");
+			break;
+		}
+	}
