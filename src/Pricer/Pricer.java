@@ -99,6 +99,10 @@ public class Pricer extends Object {
 
 	// toString method for optimized printing.
 	// Format: timestamp ID buy/sell
+	//hidden orders?
+	//market order MAX?
+	//order types?
+	//log?
 	public String toString() {
 		String s = "";
 		s += this.timestamp + "\t";
