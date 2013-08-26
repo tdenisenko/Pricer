@@ -15,13 +15,12 @@ public class Test {
 	public static void main(String[] args) throws IOException,
 			InterruptedException {
 		String a;
-		Pricer p = null;
 
 		BufferedReader br = new BufferedReader(new FileReader("pricer.in"));
 		try {
 			while ((a = br.readLine()) != null) {
 				// System.out.println(a + " ->");
-				OrderBook o = new OrderBook(a, p);
+				OrderBook o = new OrderBook(a);
 				// Thread.sleep(200);
 			}
 		} finally {

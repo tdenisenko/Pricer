@@ -53,7 +53,8 @@ public class OrderBook {
 
 	// The constructor. It calls init function once an object is created and
 	// prints the Order Book once every 100 orders has been submitted.
-	public OrderBook(String a, Pricer p) throws InterruptedException {
+	public OrderBook(String a) throws InterruptedException {
+		Pricer p = null;
 		this.init(a, p);
 		if (OrderBook.ORDERBOOK_COUNT++ % 100 == 0) {
 			System.out.println(this.toString());
