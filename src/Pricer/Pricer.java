@@ -99,17 +99,22 @@ public class Pricer extends Object {
 
 	// toString method for optimized printing.
 	// Format: timestamp ID buy/sell
-	//hidden orders?
-	//market order MAX?
-	//order types?
-	//log?
+	// log?
 	public String toString() {
 		String s = "";
 		s += this.timestamp + "\t";
-		if (this.message.equals("A") && this.side == 'B') {
+		if (this.message == "L" && this.side == 'B') {
 			s += this.orderID + "\t" + this.price + "\t" + this.size;
-		} else if (this.message.equals("A") && this.side == 'S') {
+		} else if (this.message == "L" && this.side == 'S') {
 			s += this.orderID + "\t\t\t\t" + this.price + "\t" + this.size;
+		} else if (this.message == "M" && this.side == 'B') {
+			s += this.orderID + "\tMarket\t" + this.size;
+		} else if (this.message == "M" && this.side == 'S') {
+			s += this.orderID + "\t\t\t\tMarket\t" + this.size;
+		}else if (this.message == "H" && this.side == 'B') {
+			s += this.orderID + "\t" + this.price + "\t" + this.size + " (HIDDEN)";
+		} else if (this.message == "H" && this.side == 'S') {
+			s += this.orderID + "\t\t\t(HIDDEN) " + this.price + "\t" + this.size;
 		}
 		return s;
 	}

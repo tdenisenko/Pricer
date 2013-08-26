@@ -25,13 +25,13 @@ public class OrderBook {
 	static Comparator<Pricer> comparator = new Comparator<Pricer>() {
 		public int compare(Pricer p1, Pricer p2) {
 			if ((int) ((p2.price - p1.price) * 1000) == 0) {
-				if((p1.message.compareTo("H") != 0 && p2.message.compareTo("H") != 0) || (p1.message.compareTo("H") == 0 && p2.message.compareTo("H") == 0)) {
+				if((p1.message != "H" && p2.message != "H") || (p1.message == "H" && p2.message == "H")) {
 					return (int) (p1.timestamp - p2.timestamp);
 				}
-				else if(p1.message.compareTo("H") != 0 && p2.message.compareTo("H") == 0) {
+				else if(p1.message != "H" && p2.message == "H") {
 					return -1;
 				}
-				else if(p1.message.compareTo("H") == 0 && p2.message.compareTo("H") != 0) {
+				else if(p1.message == "H" && p2.message != "H") {
 					return 1;
 				}
 			}
@@ -349,14 +349,14 @@ public class OrderBook {
 		p.side = 'N';
 		int i;
 		for (i = 0; i < listSell.size(); i++) {
-			if (p.orderID.compareTo(listSell.get(i).orderID) == 0) {
+			if (p.orderID == listSell.get(i).orderID) {
 				p.side = 'S';
 				break;
 			}
 		}
 		int j;
 		for (j = 0; j < listBuy.size(); j++) {
-			if (p.orderID.compareTo(listBuy.get(j).orderID) == 0) {
+			if (p.orderID == listBuy.get(j).orderID) {
 				p.side = 'B';
 				break;
 			}
@@ -387,14 +387,14 @@ public class OrderBook {
 		p.side = 'N';
 		int i;
 		for (i = 0; i < listSell.size(); i++) {
-			if (p.orderID.compareTo(listSell.get(i).orderID) == 0) {
+			if (p.orderID == listSell.get(i).orderID) {
 				p.side = 'S';
 				break;
 			}
 		}
 		int j;
 		for (j = 0; j < listBuy.size(); j++) {
-			if (p.orderID.compareTo(listBuy.get(j).orderID) == 0) {
+			if (p.orderID == listBuy.get(j).orderID) {
 				p.side = 'B';
 				break;
 			}
