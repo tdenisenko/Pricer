@@ -14,6 +14,23 @@ public class Pricer extends Object {
 	double price; // Price with a precision of .00
 	int size; // Size of the order
 
+	// temp constructor
+	public Pricer(String message, String orderID, char side, double price,
+			int size) {
+		Calendar c = Calendar.getInstance();
+		long now = c.getTimeInMillis();
+		c.set(Calendar.HOUR_OF_DAY, 0);
+		c.set(Calendar.MINUTE, 0);
+		c.set(Calendar.SECOND, 0);
+		c.set(Calendar.MILLISECOND, 0);
+		this.timestamp = now - c.getTimeInMillis();
+		this.message = message;
+		this.orderID = orderID;
+		this.side = side;
+		this.price = price;
+		this.size = size;
+	}
+
 	// Limit order, IOC, FOK, Hidden
 	public Pricer(String message, char side, double price, int size) {
 		Calendar c = Calendar.getInstance();
@@ -90,7 +107,7 @@ public class Pricer extends Object {
 
 	// Overridden equals method for comparison with orders' orderID
 	public boolean equals(Object p) {
-		if (this.orderID == ((Pricer) p).orderID) {
+		if (this.orderID.equals(((Pricer) p).orderID)) {
 			return true;
 		} else {
 			return false;
@@ -103,18 +120,22 @@ public class Pricer extends Object {
 	public String toString() {
 		String s = "";
 		s += this.timestamp + "\t";
-		if (this.message == "L" && this.side == 'B') {
+		if ((this.message.equals("L") || this.message.equals("T"))
+				&& this.side == 'B') {
 			s += this.orderID + "\t" + this.price + "\t" + this.size;
-		} else if (this.message == "L" && this.side == 'S') {
+		} else if ((this.message.equals("L") || this.message.equals("T"))
+				&& this.side == 'S') {
 			s += this.orderID + "\t\t\t\t" + this.price + "\t" + this.size;
-		} else if (this.message == "M" && this.side == 'B') {
+		} else if (this.message.equals("M") && this.side == 'B') {
 			s += this.orderID + "\tMarket\t" + this.size;
-		} else if (this.message == "M" && this.side == 'S') {
+		} else if (this.message.equals("M") && this.side == 'S') {
 			s += this.orderID + "\t\t\t\tMarket\t" + this.size;
-		}else if (this.message == "H" && this.side == 'B') {
-			s += this.orderID + "\t" + this.price + "\t" + this.size + "\t(HIDDEN)";
-		} else if (this.message == "H" && this.side == 'S') {
-			s += this.orderID + "\t\t\t\t" + this.price + "\t" + this.size + "\t(HIDDEN)";
+		} else if (this.message.equals("H") && this.side == 'B') {
+			s += this.orderID + "\t" + this.price + "\t" + this.size
+					+ "\t\t\t\t(HIDDEN)";
+		} else if (this.message.equals("H") && this.side == 'S') {
+			s += this.orderID + "\t\t\t\t" + this.price + "\t" + this.size
+					+ "\t(HIDDEN)";
 		}
 		return s;
 	}

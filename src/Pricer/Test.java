@@ -20,13 +20,24 @@ public class Test {
 		try {
 			while ((a = br.readLine()) != null) {
 				// System.out.println(a + " ->");
-				OrderBook o = new OrderBook(a);
-				// Thread.sleep(200);
+				String[] order = a.split(" ");
+				String b = "";
+				if(order[1].equals("A")) {
+					b += "T";
+				}
+				else if(order[1].equals("R")) {
+					b += "R";
+				}
+				for(int i = 2; i < order.length; i++) {
+					b += " " + order[i];
+				}
+				OrderBook o = new OrderBook(b);
+				Thread.sleep(1);
 			}
 		} finally {
 			br.close();
 		}
 		System.out.println("Done!\nTotal orders processed: "
-				+ Pricer.NUMBER_OF_ORDERS);
+				+ OrderBook.ORDERBOOK_COUNT);
 	}
 }

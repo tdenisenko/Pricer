@@ -18,20 +18,20 @@ import java.util.List;
 public class OrderBook {
 
 	// Keeps the count of total orders given
-	// static int ORDERBOOK_COUNT = 0;
-
+	static int ORDERBOOK_COUNT = 0;
+	
 	// Comparator for sorting the orders by price (.00 precision) and by
 	// timestamp if prices are same.
 	static Comparator<Pricer> comparator = new Comparator<Pricer>() {
 		public int compare(Pricer p1, Pricer p2) {
 			if ((int) ((p2.price - p1.price) * 1000) == 0) {
-				if((p1.message != "H" && p2.message != "H") || (p1.message == "H" && p2.message == "H")) {
+				if((!p1.message.equals("H") && !p2.message.equals("H")) || (p1.message.equals("H") && p2.message.equals("H"))) {
 					return (int) (p1.timestamp - p2.timestamp);
 				}
-				else if(p1.message != "H" && p2.message == "H") {
+				else if(!p1.message.equals("H") && p2.message.equals("H")) {
 					return -1;
 				}
-				else if(p1.message == "H" && p2.message != "H") {
+				else if(p1.message.equals("H") && !p2.message.equals("H")) {
 					return 1;
 				}
 			}
@@ -73,7 +73,7 @@ public class OrderBook {
 	// prints the Order Book once every 100 orders has been submitted.
 	public OrderBook(String a) throws InterruptedException {
 		this.init(a);
-		if (Pricer.NUMBER_OF_ORDERS % 100 == 0) {
+		if (OrderBook.ORDERBOOK_COUNT++ % 100 == 0) {
 			System.out.println(this.toString());
 			// Thread.sleep(500); //Activate if you want to watch it stream
 		}
@@ -105,6 +105,15 @@ public class OrderBook {
 		String[] order = a.split(" ");
 		message = order[0];
 		switch (message) {
+		//temp case
+		case "T":
+			orderID = order[1];
+			side = order[2].charAt(0);
+			price = Double.valueOf(order[3]);
+			size = Integer.valueOf(order[4]);
+			p = new Pricer(message, orderID, side, price, size);
+			add(p);
+			break;
 		case "L":
 			side = order[1].charAt(0);
 			price = Double.valueOf(order[2]);
@@ -158,6 +167,7 @@ public class OrderBook {
 			break;
 		default:
 			System.err.println("Wrong order type!");
+			break;
 		}
 	}
 
@@ -349,14 +359,14 @@ public class OrderBook {
 		p.side = 'N';
 		int i;
 		for (i = 0; i < listSell.size(); i++) {
-			if (p.orderID == listSell.get(i).orderID) {
+			if (p.equals(listSell.get(i))) {
 				p.side = 'S';
 				break;
 			}
 		}
 		int j;
 		for (j = 0; j < listBuy.size(); j++) {
-			if (p.orderID == listBuy.get(j).orderID) {
+			if (p.equals(listBuy.get(j))) {
 				p.side = 'B';
 				break;
 			}
@@ -387,14 +397,14 @@ public class OrderBook {
 		p.side = 'N';
 		int i;
 		for (i = 0; i < listSell.size(); i++) {
-			if (p.orderID == listSell.get(i).orderID) {
+			if (p.equals(listSell.get(i))) {
 				p.side = 'S';
 				break;
 			}
 		}
 		int j;
 		for (j = 0; j < listBuy.size(); j++) {
-			if (p.orderID == listBuy.get(j).orderID) {
+			if (p.equals(listBuy.get(j))) {
 				p.side = 'B';
 				break;
 			}
