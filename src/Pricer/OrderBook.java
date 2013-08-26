@@ -62,77 +62,20 @@ public class OrderBook {
 		}
 	}
 
-	// The initiator function. It has 5 cases of recognizing different types of
-	// orders, explained below.
+	/*
+	 * Renewed init function
+	 * Timestamp and IDs are auto-generated.
+	 * Formats:
+	 * Limit order: "message side price size" Ex.: "L B 32.20 100" (Buy 100 stocks for 32.20)
+	 * Reduce order: "message orderID size" Ex.: "R qwe 150" (Reduce order qwe by 150)
+	 * Cancel order: "message orderID" Ex.: "C cfh" (Cancel order cfh)
+	 * Market order: "message side size" Ex.: "M S 200" (Sell 200 stocks at the highest available price)
+	 * IOC: "message side price size" Ex.: "I B 40.00 100" (Buy up to 100 stocks at price 40.00 or lower and cancel remaining order immediately)
+	 * FOK: "message side price size" Ex.: "F S 38.10 50" (Sell 50 orders at 38.10 or higher price, if less than 50 available, cancel the order completely without any trades)
+	 * Hidden order: "message side price size" Ex.: "H S 45.40 1000" (Sell 1000 stocks at 45.40 or lower price but the priority of this order is last compared to other orders at same price)
+	 */
 	public void init(String a, Pricer p) {
-		long timestamp; // time passed since midnight (00:00) in miliseconds
-		String message; // "A" for ask or bid, "R" for reduce
-		String side; // "S" for sell(ask) "B" for buy(bid)
-		double price; // price with a precision of .00
-		String orderID; // an ID which may include alphanumeric characters.
-		int size; // size of the order
-		// Splits order by white spaces
-		String[] order = a.split(" ");
-		// Judging by the order's length (3 to 6 words)
-		switch (order.length) {
-		// Format: "Timestamp message orderID side price size"
-		// Ex.: "28800538 A 32s S 44.26 100"
-		case 6:
-			timestamp = Long.valueOf(order[0]);
-			message = order[1];
-			orderID = order[2];
-			side = order[3];
-			price = Double.valueOf(order[4]);
-			size = Integer.valueOf(order[5]);
-			p = new Pricer(timestamp, message, orderID, side, price, size);
-			add(p);
-			break;
-		// Format: "Timestamp message side price size" (ID is auto-generated)
-		// Ex.: "28800538 A B 44.26 100"
-		case 5:
-			timestamp = Long.valueOf(order[0]);
-			message = order[1];
-			side = order[2];
-			price = Double.valueOf(order[3]);
-			size = Integer.valueOf(order[4]);
-			p = new Pricer(timestamp, message, side, price, size);
-			add(p);
-			break;
-		case 4:
-			// Format: "message side price size" (No timestamp format, ID is
-			// auto-generated)
-			// Ex.: "A B 44.26 100"
-			if (order[0].length() <= 1) {
-				message = order[0];
-				side = order[1];
-				price = Double.valueOf(order[2]);
-				size = Integer.valueOf(order[3]);
-				p = new Pricer(message, side, price, size);
-				add(p);
-				// Format: "Timestamp message orderID size" (reduce orders)
-				// Ex.: "28800538 R 32s 100"
-			} else {
-				timestamp = Long.valueOf(order[0]);
-				message = order[1];
-				orderID = order[2];
-				size = Integer.valueOf(order[3]);
-				p = new Pricer(timestamp, message, orderID, size);
-				reduce(p);
-			}
-			break;
-		// Format: "message orderID size" (No timestamp format, reduce orders)
-		// Ex.: "R 32s 50"
-		case 3:
-			message = order[0];
-			orderID = order[1];
-			size = Integer.valueOf(order[2]);
-			p = new Pricer(message, orderID, size);
-			reduce(p);
-			break;
-		default:
-			System.err.println("Wrong order format.");
-			break;
-		}
+		
 	}
 
 	// Adds order to the specified list
