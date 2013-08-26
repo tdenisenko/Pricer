@@ -18,7 +18,7 @@ import java.util.List;
 public class OrderBook {
 
 	// Keeps the count of total orders given
-	static int ORDERBOOK_COUNT = 0;
+	// static int ORDERBOOK_COUNT = 0;
 
 	// Comparator for sorting the orders by price (.00 precision) and by
 	// timestamp is prices are same.
@@ -54,9 +54,8 @@ public class OrderBook {
 	// The constructor. It calls init function once an object is created and
 	// prints the Order Book once every 100 orders has been submitted.
 	public OrderBook(String a) throws InterruptedException {
-		Pricer p = null;
-		this.init(a, p);
-		if (OrderBook.ORDERBOOK_COUNT++ % 100 == 0) {
+		this.init(a);
+		if (Pricer.NUMBER_OF_ORDERS % 100 == 0) {
 			System.out.println(this.toString());
 			// Thread.sleep(500); //Activate if you want to watch it stream
 		}
@@ -64,23 +63,98 @@ public class OrderBook {
 
 	/*
 	 * Renewed init function
-	 * Timestamp and IDs are auto-generated.
+	 * Time stamps and IDs are auto-generated.
 	 * Formats:
-	 * Limit order: "message side price size" Ex.: "L B 32.20 100" (Buy 100 stocks for 32.20)
-	 * Reduce order: "message orderID size" Ex.: "R qwe 150" (Reduce order qwe by 150)
-	 * Cancel order: "message orderID" Ex.: "C cfh" (Cancel order cfh)
-	 * Market order: "message side size" Ex.: "M S 200" (Sell 200 stocks at the highest available price)
-	 * IOC: "message side price size" Ex.: "I B 40.00 100" (Buy up to 100 stocks at price 40.00 or lower and cancel remaining order immediately)
-	 * FOK: "message side price size" Ex.: "F S 38.10 50" (Sell 50 orders at 38.10 or higher price, if less than 50 available, cancel the order completely without any trades)
-	 * Hidden order: "message side price size" Ex.: "H S 45.40 1000" (Sell 1000 stocks at 45.40 or lower price but the priority of this order is last compared to other orders at same price)
+	 * Limit order: "message side price size"
+	 * Ex.: "L B 32.20 100"
+	 * (Buy 100 stocks for 32.20)
+	 * Reduce order: "message orderID size"
+	 * Ex.: "R qwe 150"
+	 * (Reduce order qwe by 150)
+	 * Cancel order: "message orderID"
+	 * Ex.: "C cfh"
+	 * (Cancel order cfh)
+	 * Market order: "message side size"
+	 * Ex.: "M S 200"
+	 * (Sell 200 stocks at the highest available price)
+	 * IOC: "message side price size"
+	 * Ex.: "I B 40.00 100"
+	 * (Buy up to 100 stocks at price 40.00 or lower and
+	 * cancel remaining order immediately)
+	 * FOK: "message side price size"
+	 * Ex.: "F S 38.10 50"
+	 * (Sell 50 orders at 38.10 or higher price, if less than 50
+	 * available, cancel the order completely without any trades)
+	 * Hidden order: "message side price size"
+	 * Ex.: "H S 45.40 1000"
+	 * (Sell 1000 stocks at 45.40 or lower price but the priority
+	 * of this order is last compared to other orders at same price)
 	 */
-	public void init(String a, Pricer p) {
-		
+	public void init(String a) {
+		Pricer p = null;
+		long timestamp;
+		String message;
+		char side;
+		double price;
+		String orderID;
+		int size;
+		// Splits order by white spaces
+		String[] order = a.split(" ");
+		message = order[0];
+		switch (message) {
+		case "L":
+			side = order[1].charAt(0);
+			price = Double.valueOf(order[2]);
+			size = Integer.valueOf(order[3]);
+			p = new Pricer(message, side, price, size);
+			limit(p);
+			break;
+		case "R":
+			orderID = order[1];
+			size = Integer.valueOf(order[2]);
+			p = new Pricer(message, orderID, size);
+			reduce(p);
+			break;
+		case "C":
+			orderID = order[1];
+			p = new Pricer(message, orderID);
+			cancel(p);
+			break;
+		case "M":
+			side = order[1].charAt(0);
+			size = Integer.valueOf(order[2]);
+			p = new Pricer(message, side, size);
+			market(p);
+			break;
+		case "I":
+			side = order[1].charAt(0);
+			price = Double.valueOf(order[2]);
+			size = Integer.valueOf(order[3]);
+			p = new Pricer(message, side, price, size);
+			ioc(p);
+			break;
+		case "F":
+			side = order[1].charAt(0);
+			price = Double.valueOf(order[2]);
+			size = Integer.valueOf(order[3]);
+			p = new Pricer(message, side, price, size);
+			fok(p);
+			break;
+		case "H":
+			side = order[1].charAt(0);
+			price = Double.valueOf(order[2]);
+			size = Integer.valueOf(order[3]);
+			p = new Pricer(message, side, price, size);
+			hidden(p);
+			break;
+		default:
+			System.err.println("Wrong order type!");
+		}
 	}
 
-	// Adds order to the specified list
-	public void add(Pricer p) {
-		if (p.side.compareTo("S") == 0) {
+	// Processes limit orders
+	public void limit(Pricer p) {
+		if (p.side == 'S') {
 			listSell.add(p);
 			int i = 0;
 			outerloop: while (i < listBuy.size()) {
@@ -109,7 +183,7 @@ public class OrderBook {
 					break;
 				}
 			}
-		} else if (p.side.compareTo("B") == 0) {
+		} else if (p.side == 'B') {
 			listBuy.add(p);
 			int i = listSell.size() - 1;
 			outerloop: while (i >= 0) {
@@ -147,27 +221,28 @@ public class OrderBook {
 	// if the reduction size is bigger than the order itself, reduces the
 	// order's size otherwise.
 	public void reduce(Pricer p) {
+		p.side = 'N';
 		int i;
 		for (i = 0; i < listSell.size(); i++) {
 			if (p.orderID.compareTo(listSell.get(i).orderID) == 0) {
-				p.side = "S";
+				p.side = 'S';
 				break;
 			}
 		}
 		int j;
 		for (j = 0; j < listBuy.size(); j++) {
 			if (p.orderID.compareTo(listBuy.get(j).orderID) == 0) {
-				p.side = "B";
+				p.side = 'B';
 				break;
 			}
 		}
 		int res;
 		// This order has been executed or never existed.
-		if (p.side == null) {
+		if (p.side == 'N') {
 			// System.err.println("Wrong reduce order\nThis order has been executed already or it never existed.");
 			return;
 			// Case 9: Reduce order for sell orders
-		} else if (p.side.compareTo("B") == 0) {
+		} else if (p.side == 'B') {
 			res = listBuy.get(j).size - p.size;
 			if (res <= 0) {
 				listBuy.remove(j);
@@ -176,7 +251,7 @@ public class OrderBook {
 			}
 		}
 		// Case 10: Reduce order for buy orders
-		else if (p.side.compareTo("S") == 0) {
+		else if (p.side == 'S') {
 			res = listSell.get(i).size - p.size;
 			if (res <= 0) {
 				listSell.remove(i);
@@ -184,7 +259,6 @@ public class OrderBook {
 				listSell.get(i).size = res;
 			}
 		}
-
 	}
 
 	// Printing the Order Book with a limit of 10 for both Sell and Buy orders
