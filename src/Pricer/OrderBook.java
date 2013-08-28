@@ -22,7 +22,7 @@ public class OrderBook {
 	
 	// Comparator for sorting the orders by price (.00 precision) and by
 	// timestamp if prices are same.
-	static Comparator<Pricer> comparator = new Comparator<Pricer>() {
+	static Comparator<Pricer> comparatorBuy = new Comparator<Pricer>() {
 		public int compare(Pricer p1, Pricer p2) {
 			if ((int) ((p2.price - p1.price) * 1000) == 0) {
 				if((!p1.message.equals("H") && !p2.message.equals("H")) || (p1.message.equals("H") && p2.message.equals("H"))) {
@@ -38,13 +38,30 @@ public class OrderBook {
 			return (int) ((p2.price - p1.price) * 1000);
 		}
 	};
+	
+	static Comparator<Pricer> comparatorSell = new Comparator<Pricer>() {
+		public int compare(Pricer p1, Pricer p2) {
+			if ((int) ((p2.price - p1.price) * 1000) == 0) {
+				if((!p1.message.equals("H") && !p2.message.equals("H")) || (p1.message.equals("H") && p2.message.equals("H"))) {
+					return (int) (p2.timestamp - p1.timestamp);
+				}
+				else if(!p1.message.equals("H") && p2.message.equals("H")) {
+					return 1;
+				}
+				else if(p1.message.equals("H") && !p2.message.equals("H")) {
+					return -1;
+				}
+			}
+			return (int) ((p2.price - p1.price) * 1000);
+		}
+	};
 
 	// The Ask List (always sorted and synchronized)
 	static List<Pricer> listSell = Collections
 			.synchronizedList(new ArrayList<Pricer>() {
 				public boolean add(Pricer p) {
 					super.add(p);
-					Collections.sort(listSell, comparator);
+					Collections.sort(listSell, comparatorSell);
 					return true;
 				}
 			});
@@ -54,17 +71,26 @@ public class OrderBook {
 			.synchronizedList(new ArrayList<Pricer>() {
 				public boolean add(Pricer p) {
 					super.add(p);
-					Collections.sort(listBuy, comparator);
+					Collections.sort(listBuy, comparatorBuy);
 					return true;
 				}
 			});
 	
 	// The Temporary List (always sorted and synchronized)
-	static List<Pricer> listTemp = Collections
+	static List<Pricer> listTempBuy = Collections
 			.synchronizedList(new ArrayList<Pricer>() {
 				public boolean add(Pricer p) {
 					super.add(p);
-					Collections.sort(listBuy, comparator);
+					Collections.sort(listBuy, comparatorBuy);
+					return true;
+				}
+			});
+	
+	static List<Pricer> listTempSell = Collections
+			.synchronizedList(new ArrayList<Pricer>() {
+				public boolean add(Pricer p) {
+					super.add(p);
+					Collections.sort(listBuy, comparatorSell);
 					return true;
 				}
 			});
@@ -311,12 +337,12 @@ public class OrderBook {
 						// buy order (continues iteration)
 					} else {
 						p.size -= listBuy.get(i).size;
-						listTemp.add(listBuy.remove(i));
+						listTempBuy.add(listBuy.remove(i));
 					}
 					// Case 4: Sell order with a higher price than the highest
 					// buy order (just adds the order to list)
 				} else {
-					listBuy.addAll(listTemp);
+					listBuy.addAll(listTempBuy);
 					break;
 				}
 			}
@@ -338,17 +364,18 @@ public class OrderBook {
 						// sell order
 					} else {
 						p.size -= listSell.get(i).size;
-						listTemp.add(listSell.remove(i));
+						listTempSell.add(listSell.remove(i));
 						i--;
 					}
 					// Case 8: Buy order with a lower price than the lowest sell
 					// order
 				} else {
-					listSell.addAll(listTemp);
+					listSell.addAll(listTempSell);
 				}
 			}
 		}
-		listTemp.clear();
+		listTempSell.clear();
+		listTempBuy.clear();
 	}
 
 	// Reduces (or removes) the order with the specified orderID
