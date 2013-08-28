@@ -81,7 +81,7 @@ This class tests orders from a given file (pricer.in) that includes over 1 milli
 
 Functions of Pricer Project
 ---
-* Limit order, IOC, FOK, Hidden:
+#### Limit order and Hidden order (adds order to list):
 1. Sell order with a smaller size than the highest buy order. Solution: Remove the sell order and reduce the size of the highest buy order.
 2. Sell order with the same size as the highest buy order. Solution: Remove both lowest sell and highest buy order.
 3. Sell order with bigger size than the highest buy order. Solution: Decrease the size of sell order by the highest buy order, remove the highest buy order, iterate from the first case.
@@ -90,5 +90,39 @@ Functions of Pricer Project
 6. Buy order with the same size as the lowest sell order. Solution: Remove both lowest sell and highest buy order.
 7. Buy order with bigger size than the lowest sell order. Solution: Decrease the size of buy order by the lowest sell order, remove the lowest sell order, iterate from the first case.
 8. Buy order with a lower price than the lowest buy order. Solution: Just add the buy order to the Order Book.
-9. Reduce order for sell orders. Solution: Remove order from the Order Book if reduce order's size is equal to or bigger than the order size, reduce the size otherwise.
-10. Reduce order for buy orders. Solution: Remove order from the Order Book if reduce order's size is equal to or bigger than the order size, reduce the size otherwise.
+
+#### Market order:
+1. Sell order with a smaller size than the highest buy order. Solution: Reduce the size of the highest buy order.
+2. Sell order with the same size as the highest buy order. Solution: Remove the highest buy order.
+3. Sell order with bigger size than the highest buy order. Solution: Decrease the size of sell order by the highest buy order, remove the highest buy order, iterate from the first case.
+4. Buy order with a smaller size than the lowest sell order. Solution: Reduce the size of the lowest sell order.
+5. Buy order with the same size as the lowest sell order. Solution: Remove lowest sell order.
+6. Buy order with bigger size than the lowest sell order. Solution: Decrease the size of buy order by the lowest sell order, remove the lowest sell order, iterate from the first case.
+
+#### IOC:
+1. Sell order with a smaller size than the highest buy order. Solution: Reduce the size of the highest buy order.
+2. Sell order with the same size as the highest buy order. Solution: Remove highest buy order.
+3. Sell order with bigger size than the highest buy order. Solution: Decrease the size of sell order by the highest buy order, remove the highest buy order, iterate from the first case.
+4. Sell order with a higher price than the highest buy order. Solution: Do nothing.
+5. Buy order with a smaller size than the lowest sell order. Solution: Reduce the size of the lowest sell order.
+6. Buy order with the same size as the lowest sell order. Solution: Remove lowest sell order.
+7. Buy order with bigger size than the lowest sell order. Solution: Decrease the size of buy order by the lowest sell order, remove the lowest sell order, iterate from the first case.
+8. Buy order with a lower price than the lowest buy order. Solution: Do nothing.
+
+#### FOK:
+1. Sell order with a smaller size than the highest buy order. Solution: Reduce the size of the highest buy order.
+2. Sell order with the same size as the highest buy order. Solution: Remove highest buy order.
+3. Sell order with bigger size than the highest buy order. Solution: Decrease the size of sell order by the highest buy order, remove the highest buy order, put the removed element to temporary list (listTempBuy), iterate from the first case.
+4. Sell order with a higher price than the highest buy order. Solution: Reverse the process by adding all elements from temporary list (listTempBuy) to buy list (listBuy) back, clear the temporary list.
+5. Buy order with a smaller size than the lowest sell order. Solution: Reduce the size of the lowest sell order.
+6. Buy order with the same size as the lowest sell order. Solution: Remove lowest sell order.
+7. Buy order with bigger size than the lowest sell order. Solution: Decrease the size of buy order by the lowest sell order, remove the lowest sell order, put the removed element to temporary list (listTempSell), iterate from the first case.
+8. Buy order with a lower price than the lowest buy order. Solution: Reverse the process by adding all elements from temporary list (listTempSell) to sell list (listSell) back, clear the temporary list.
+
+#### Reduce order:
+1. Reduce order for sell orders. Solution: Remove order from the Order Book if reduce order's size is equal to or bigger than the order size, reduce the size otherwise.
+2. Reduce order for buy orders. Solution: Remove order from the Order Book if reduce order's size is equal to or bigger than the order size, reduce the size otherwise.
+
+#### Cancel order:
+1. Cancel the specified order with orderID.
+2. Error message if order with given orderID does not exist.
