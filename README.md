@@ -1,3 +1,7 @@
+Update 28 Aug 2013
+______
+asd
+
 Pricer project by Timothy Denisenko
 ======
 
