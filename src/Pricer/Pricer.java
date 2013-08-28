@@ -14,7 +14,7 @@ public class Pricer extends Object {
 	double price; // Price with a precision of .00
 	int size; // Size of the order
 
-	// temp constructor
+	// temp constructor (for pricer.in)
 	public Pricer(String message, String orderID, char side, double price,
 			int size) {
 		Calendar c = Calendar.getInstance();
