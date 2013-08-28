@@ -16,7 +16,7 @@ public class Test {
 			InterruptedException {
 		String a;
 
-		BufferedReader br = new BufferedReader(new FileReader("pricer.in"));
+		BufferedReader br = new BufferedReader(new FileReader("Docs/pricer.in"));
 		try {
 			while ((a = br.readLine()) != null) {
 				// System.out.println(a + " ->");
