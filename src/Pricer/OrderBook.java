@@ -131,7 +131,7 @@ public class OrderBook {
 		String[] order = a.split(" ");
 		message = order[0];
 		switch (message) {
-		//temp case
+		//temp case (for pricer.in)
 		case "T":
 			orderID = order[1];
 			side = order[2].charAt(0);
