@@ -17,13 +17,7 @@ public class Pricer extends Object {
 	// temp constructor (for pricer.in)
 	public Pricer(String message, String orderID, char side, double price,
 			int size) {
-		Calendar c = Calendar.getInstance();
-		long now = c.getTimeInMillis();
-		c.set(Calendar.HOUR_OF_DAY, 0);
-		c.set(Calendar.MINUTE, 0);
-		c.set(Calendar.SECOND, 0);
-		c.set(Calendar.MILLISECOND, 0);
-		this.timestamp = now - c.getTimeInMillis();
+		setCurrentTimestamp(this);
 		this.message = message;
 		this.orderID = orderID;
 		this.side = side;
@@ -33,13 +27,7 @@ public class Pricer extends Object {
 
 	// Limit order, IOC, FOK, Hidden
 	public Pricer(String message, char side, double price, int size) {
-		Calendar c = Calendar.getInstance();
-		long now = c.getTimeInMillis();
-		c.set(Calendar.HOUR_OF_DAY, 0);
-		c.set(Calendar.MINUTE, 0);
-		c.set(Calendar.SECOND, 0);
-		c.set(Calendar.MILLISECOND, 0);
-		this.timestamp = now - c.getTimeInMillis();
+		setCurrentTimestamp(this);
 		this.message = message;
 		this.orderID = IntToLetter(Pricer.NUMBER_OF_ORDERS++);
 		this.side = side;
@@ -49,13 +37,7 @@ public class Pricer extends Object {
 
 	// Reduce order
 	public Pricer(String message, String orderID, int size) {
-		Calendar c = Calendar.getInstance();
-		long now = c.getTimeInMillis();
-		c.set(Calendar.HOUR_OF_DAY, 0);
-		c.set(Calendar.MINUTE, 0);
-		c.set(Calendar.SECOND, 0);
-		c.set(Calendar.MILLISECOND, 0);
-		this.timestamp = now - c.getTimeInMillis();
+		setCurrentTimestamp(this);
 		this.message = message;
 		this.orderID = orderID;
 		Pricer.NUMBER_OF_ORDERS++;
@@ -64,13 +46,7 @@ public class Pricer extends Object {
 
 	// Cancel order
 	public Pricer(String message, String orderID) {
-		Calendar c = Calendar.getInstance();
-		long now = c.getTimeInMillis();
-		c.set(Calendar.HOUR_OF_DAY, 0);
-		c.set(Calendar.MINUTE, 0);
-		c.set(Calendar.SECOND, 0);
-		c.set(Calendar.MILLISECOND, 0);
-		this.timestamp = now - c.getTimeInMillis();
+		setCurrentTimestamp(this);
 		this.message = message;
 		this.orderID = orderID;
 		Pricer.NUMBER_OF_ORDERS++;
@@ -78,17 +54,29 @@ public class Pricer extends Object {
 
 	// Market order
 	public Pricer(String message, char side, int size) {
+		setCurrentTimestamp(this);
+		this.message = message;
+		this.side = side;
+		Pricer.NUMBER_OF_ORDERS++;
+		this.size = size;
+	}
+	
+	// Broadcasts
+	public Pricer(String message, int size, double price) {
+			setCurrentTimestamp(this);
+			this.message = message;
+			this.size = size;
+			this.price = price;
+		}
+	
+	public void setCurrentTimestamp(Pricer p) {
 		Calendar c = Calendar.getInstance();
 		long now = c.getTimeInMillis();
 		c.set(Calendar.HOUR_OF_DAY, 0);
 		c.set(Calendar.MINUTE, 0);
 		c.set(Calendar.SECOND, 0);
 		c.set(Calendar.MILLISECOND, 0);
-		this.timestamp = now - c.getTimeInMillis();
-		this.message = message;
-		this.side = side;
-		Pricer.NUMBER_OF_ORDERS++;
-		this.size = size;
+		p.timestamp = now - c.getTimeInMillis();
 	}
 
 	// Sequence generator
