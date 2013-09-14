@@ -81,7 +81,7 @@ public class OrderBook {
 			.synchronizedList(new ArrayList<Pricer>() {
 				public boolean add(Pricer p) {
 					super.add(p);
-					Collections.sort(listBuy, comparatorBuy);
+					Collections.sort(listTempBuy, comparatorBuy);
 					return true;
 				}
 			});
@@ -90,7 +90,24 @@ public class OrderBook {
 			.synchronizedList(new ArrayList<Pricer>() {
 				public boolean add(Pricer p) {
 					super.add(p);
-					Collections.sort(listBuy, comparatorSell);
+					Collections.sort(listTempSell, comparatorSell);
+					return true;
+				}
+			});
+
+	// broadcasting lists
+	static List<Integer> sizes = Collections
+			.synchronizedList(new ArrayList<Integer>() {
+				public boolean add(Integer p) {
+					super.add(p);
+					return true;
+				}
+			});
+
+	static List<Double> prices = Collections
+			.synchronizedList(new ArrayList<Double>() {
+				public boolean add(Double p) {
+					super.add(p);
 					return true;
 				}
 			});
@@ -105,8 +122,9 @@ public class OrderBook {
 		this.init(a);
 		if (OrderBook.ORDERBOOK_COUNT++ % 100 == 0) {
 			System.out.println(this.toString());
-			// Thread.sleep(500); //Activate if you want to watch it stream
+			Thread.sleep(5); // Activate if you want to watch it stream
 		}
+		broadcast();
 	}
 
 	/*
@@ -203,10 +221,10 @@ public class OrderBook {
 	// Processes add orders
 	public void add(Pricer p) {
 		int counter = 0;
-		List<Double> prices = new ArrayList<Double>();
-		List<Integer> sizes = new ArrayList<Integer>();
 		if (p.side == 'S') {
-			listSell.add(p);
+			if (!p.message.equals("M")) {
+				listSell.add(p);
+			}
 			int i = 0;
 			outerloop: while (i < listBuy.size()) {
 				if (listBuy.get(i).price >= p.price) {
@@ -217,7 +235,9 @@ public class OrderBook {
 						listBuy.get(i).size -= p.size;
 						prices.add(listBuy.get(i).price);
 						sizes.add(p.size);
-						listSell.remove(listSell.indexOf(p));
+						if (!p.message.equals("M")) {
+							listSell.remove(listSell.indexOf(p));
+						}
 						break outerloop;
 						// Case 2: Sell order with the same size as the highest
 						// buy order
@@ -226,7 +246,9 @@ public class OrderBook {
 						prices.add(listBuy.get(i).price);
 						sizes.add(p.size);
 						listBuy.remove(i);
-						listSell.remove(listSell.indexOf(p));
+						if (!p.message.equals("M")) {
+							listSell.remove(listSell.indexOf(p));
+						}
 						break outerloop;
 						// Case 3: Sell order with bigger size than the highest
 						// buy order (continues iteration)
@@ -244,7 +266,9 @@ public class OrderBook {
 				}
 			}
 		} else if (p.side == 'B') {
-			listBuy.add(p);
+			if (!p.message.equals("M")) {
+				listBuy.add(p);
+			}
 			int i = listSell.size() - 1;
 			outerloop: while (i >= 0) {
 				if (listSell.get(i).price <= p.price) {
@@ -255,7 +279,9 @@ public class OrderBook {
 						listSell.get(i).size -= p.size;
 						prices.add(listSell.get(i).price);
 						sizes.add(p.size);
-						listBuy.remove(listBuy.indexOf(p));
+						if (!p.message.equals("M")) {
+							listBuy.remove(listBuy.indexOf(p));
+						}
 						break outerloop;
 						// Case 6: Buy order with the same size as the lowest
 						// sell order
@@ -264,7 +290,9 @@ public class OrderBook {
 						prices.add(listSell.get(i).price);
 						sizes.add(p.size);
 						listSell.remove(i);
-						listBuy.remove(listBuy.indexOf(p));
+						if (!p.message.equals("M")) {
+							listBuy.remove(listBuy.indexOf(p));
+						}
 						break outerloop;
 						// Case 7: Buy order with a bigger size than the lowest
 						// sell order
@@ -286,15 +314,13 @@ public class OrderBook {
 		if (counter > 0) {
 			TRADE_COUNT++;
 		}
-		if (BROADCAST == true) {
-			broadcast(sizes, prices);
-		}
+		// if (BROADCAST == true) {
+		// broadcast();
+		// }
 	}
 
 	public void ioc(Pricer p) {
 		int counter = 0;
-		List<Double> prices = new ArrayList<Double>();
-		List<Integer> sizes = new ArrayList<Integer>();
 		if (p.side == 'S') {
 			int i = 0;
 			outerloop: while (i < listBuy.size()) {
@@ -370,15 +396,13 @@ public class OrderBook {
 		if (counter > 0) {
 			TRADE_COUNT++;
 		}
-		if (BROADCAST == true) {
-			broadcast(sizes, prices);
-		}
+		// if (BROADCAST == true) {
+		// broadcast();
+		// }
 	}
 
 	public void fok(Pricer p) {
 		int counter = 0;
-		List<Double> prices = new ArrayList<Double>();
-		List<Integer> sizes = new ArrayList<Integer>();
 		if (p.side == 'S') {
 			int i = 0;
 			outerloop: while (i < listBuy.size()) {
@@ -464,9 +488,9 @@ public class OrderBook {
 		if (counter > 0) {
 			TRADE_COUNT++;
 		}
-		if (BROADCAST == true) {
-			broadcast(sizes, prices);
-		}
+		// if (BROADCAST == true) {
+		// broadcast();
+		// }
 	}
 
 	// Reduces (or removes) the order with the specified orderID
@@ -538,17 +562,22 @@ public class OrderBook {
 		}
 	}
 
-	private void broadcast(List<Integer> sizes, List<Double> prices) {
+	private void broadcast() {
 		double weightedPrice = 0;
 		int totalSize = 0;
 		for (int i = 0; i < sizes.size(); i++) {
-			weightedPrice += sizes.get(i) * prices.get(i);
-			totalSize += sizes.get(i);
+			weightedPrice += sizes.get(i).doubleValue()
+					* prices.get(i).doubleValue();
+			totalSize += sizes.get(i).intValue();
 		}
+		// System.out.println(totalSize + " " + weightedPrice + " " +
+		// sizes.size() + " " + prices.size());
 		weightedPrice /= totalSize;
 		Pricer p = new Pricer("B", totalSize, weightedPrice);
-		System.out.println("\nTrade:\tTimestamp\tAmount\tPrice\n\t\t"
-				+ p.timestamp + "\t" + p.size + "\t" + p.price);
+		if (totalSize > 0 || weightedPrice > 0.0) {
+			System.out.println("\nTrade:\tTimestamp\tAmount\tPrice\n\t"
+					+ p.timestamp + "\t" + p.size + "\t" + p.price);
+		}
 		sizes.clear();
 		prices.clear();
 	}
