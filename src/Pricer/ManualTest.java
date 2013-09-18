@@ -17,7 +17,7 @@ public class ManualTest {
 		try {
 			while ((a = inp.nextLine()) != null) {
 				OrderBook o = new OrderBook(a);
-				//Thread.sleep(1);
+				Thread.sleep(1);
 			}
 		} finally {
 			inp.close();
