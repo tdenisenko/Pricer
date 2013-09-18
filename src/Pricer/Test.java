@@ -11,7 +11,6 @@ import java.io.IOException;
  */
 
 public class Test {
-
 	public static void main(String[] args) throws IOException,
 			InterruptedException {
 		String a;
@@ -31,6 +30,7 @@ public class Test {
 				for(int i = 2; i < order.length; i++) {
 					b += " " + order[i];
 				}
+				
 				OrderBook o = new OrderBook(b);
 				Thread.sleep(1);
 			}
