@@ -10,14 +10,22 @@ Build id: 20130614-0229
 
 This project has 3 classes: Pricer.java, OrderBook.java and Test.java
 
+Update 18 Sep 2013
+---
+
+* Broadcasting implemented, broadcasts every successful trade
+* Order book is now displayed once every 100 orders (DISPLAY_INTERVAL = 100)
+* Agents are initialized, currently in beta (detailed info available in Agents.docx)
+* Manual testing is now available, all orders can be entered and tested manually (Warning: change DISPLAY_INTERVAL to 1 while tracking down order progress manually)
+
 Update 28 Aug 2013
 ---
 
 * Implemented new order types: Market order, Limit order, Reduce order, Cancel order, Hidden order, IOC and FOK
 * Fixed some comparison bugs
 * Made the project compatible with "pricer.in" file again
-* Added a recursive alphabetic sequence generetor (it has performance issues at large inputs, will reconsider coding a prefixed sequence generator)
-* Contructors and input formats are changed according to new order types
+* Added a recursive alphabetic sequence generator (it has performance issues at large inputs, will reconsider coding a prefixed sequence generator)
+* Constructors and input formats are changed according to new order types
 * Class descriptions updated
 
 Pricer.java
