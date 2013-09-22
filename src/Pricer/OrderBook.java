@@ -19,7 +19,7 @@ public class OrderBook {
 
 	// Keeps the count of total orders given
 	static int ORDERBOOK_COUNT = 0;
-	static int TRADE_COUNT = 0;
+//	static int TRADE_COUNT = 0;
 	static final int DISPLAY_INTERVAL = 100;
 
 	// Comparator for sorting the orders by price (.00 precision) and by
