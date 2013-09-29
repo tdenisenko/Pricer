@@ -20,7 +20,7 @@ public class OrderBook {
 	// Keeps the count of total orders given
 	static int ORDERBOOK_COUNT = 0;
 //	static int TRADE_COUNT = 0;
-	static final int DISPLAY_INTERVAL = 1;
+	static final int DISPLAY_INTERVAL = 100;
 
 	// Comparator for sorting the orders by price (.00 precision) and by
 	// timestamp if prices are same.
@@ -215,7 +215,7 @@ public class OrderBook {
 	}
 
 	// Processes add orders
-	public void add(Pricer p) {
+	public synchronized void add(Pricer p) {
 		if (p.side == 'S') {
 			if (!p.message.equals("M")) {
 				listSell.add(p);
@@ -517,7 +517,7 @@ public class OrderBook {
 		}
 	}
 
-	private void broadcast() {
+	private synchronized void broadcast() {
 		double weightedPrice = 0;
 		int totalSize = 0;
 		for (int i = 0; i < sizes.size(); i++) {
