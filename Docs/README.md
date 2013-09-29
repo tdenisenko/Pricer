@@ -17,12 +17,12 @@ Update 29 Sep 2013
 * Agents are complete (currently in beta, only Gaussian random number generation)
 
 * Agents now has a list of given orders
-   > AgentTest.java runs up to 100 agents concurrently
-   > A test run has made with 5000 initial orders in Order Book and 100 agents sending limit orders (price, size and time generated on a Gaussian random generation module) for 4.5 hours (270 minutes) and prices and orders sized were stable and appropriate.
-   >> Price: Mean = current price of Ask or Bid, Std. dev. = 1
-   >> Side: 50% chance for Ask and Bid
-   >> Size: Mean = 100, Std. Dev. = 25
-   >> Delay: Mean = 5000 ms, Std Dev. = 1000 ms
+   > AgentTest.java runs up to 100 agents concurrently <br\>
+   > A test run has made with 5000 initial orders in Order Book and 100 agents sending limit orders (price, size and time generated on a Gaussian random generation module) for 4.5 hours (270 minutes) and prices and orders sized were stable and appropriate. <br\>
+   >> Price: Mean = current price of Ask or Bid, Std. dev. = 1 <br\>
+   >> Side: 50% chance for Ask and Bid <br\>
+   >> Size: Mean = 100, Std. Dev. = 25 <br\>
+   >> Delay: Mean = 5000 ms, Std Dev. = 1000 ms <br\>
 
 Update 18 Sep 2013
 ---
