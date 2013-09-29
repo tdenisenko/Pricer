@@ -13,6 +13,7 @@ This project has 3 classes: Pricer.java, OrderBook.java and Test.java
 Update 29 Sep 2013
 ---
 
+#### Agents:
 * Agents are complete (currently in beta, only Gaussian random number generation)
 * Agents now has a list of given orders:
   > AgentTest.java runs up to 100 agents concurrently
