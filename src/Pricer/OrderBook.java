@@ -20,7 +20,7 @@ public class OrderBook {
 	// Keeps the count of total orders given
 	static int ORDERBOOK_COUNT = 0;
 //	static int TRADE_COUNT = 0;
-	static final int DISPLAY_INTERVAL = 100;
+	static final int DISPLAY_INTERVAL = 1;
 
 	// Comparator for sorting the orders by price (.00 precision) and by
 	// timestamp if prices are same.
@@ -118,7 +118,7 @@ public class OrderBook {
 		this.init(a);
 		if (OrderBook.ORDERBOOK_COUNT++ % DISPLAY_INTERVAL == 0) {
 			System.out.println(this.toString());
-			Thread.sleep(5); // Activate if you want to watch it stream
+			//Thread.sleep(5); // Activate if you want to watch it stream
 		}
 		broadcast();
 	}
@@ -138,7 +138,7 @@ public class OrderBook {
 	 * 45.40 or lower price but the priority of this order is last compared to
 	 * other orders at same price)
 	 */
-	public void init(String a) {
+	public synchronized void init(String a) {
 		Pricer p = null;
 		String message;
 		char side;
