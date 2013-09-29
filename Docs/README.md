@@ -14,9 +14,8 @@ Update 29 Sep 2013
 ---
 
 #### Agents
-* Agents are complete (currently in beta, only Gaussian random number generation):
-  > Asdf
-  
+* Agents are complete (currently in beta, only Gaussian random number generation)
+
 * Agents now has a list of given orders
    > AgentTest.java runs up to 100 agents concurrently
    > A test run has made with 5000 initial orders in Order Book and 100 agents sending limit orders (price, size and time generated on a Gaussian random generation module) for 4.5 hours (270 minutes) and prices and orders sized were stable and appropriate.
