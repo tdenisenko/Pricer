@@ -10,6 +10,12 @@ Build id: 20130614-0229
 
 This project has 3 classes: Pricer.java, OrderBook.java and Test.java
 
+Update 02 Oct 2013
+---
+
+* Agents now can generate Limit order, Market order, FOK, IOC and Hidden order types.
+* Hidden order, IOC and FOK is designed to perform their real purposes. 
+
 Update 29 Sep 2013
 ---
 
