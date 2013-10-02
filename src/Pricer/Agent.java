@@ -41,7 +41,19 @@ public class Agent implements Runnable {
 		// TODO Auto-generated method stub
 		while (true) {
 			String a = "";
-			String message = "L";
+			String message = "";
+			double rand = Math.random() * 100;
+			if (rand <= 1.0) {
+				message = "F";
+			} else if (rand <= 2.0) {
+				message = "I";
+			} else if (rand <= 12.0) {
+				message = "M";
+			} else if (rand <= 17.0) {
+				message = "H";
+			} else {
+				message = "L";
+			}
 			char side;
 			// 50% chance for Bid and Ask
 			if (Math.random() < 0.5) {
@@ -49,17 +61,35 @@ public class Agent implements Runnable {
 			} else {
 				side = 'S';
 			}
-			double price;
+			double price = 0.0;
 			// mean = current price
-			if (side == 'B') {
-				price = OrderBook.listBuy.get(0).price;
-			} else {
-				price = OrderBook.listSell.get(OrderBook.listSell.size() - 1).price;
+			if (message.equals("M")) {
+				if (side == 'B') {
+					price = OrderBook.listBuy.get(0).price;
+				} else {
+					price = OrderBook.listSell
+							.get(OrderBook.listSell.size() - 1).price;
+				}
+				// std. dev. = 1
+				if (message.equals("H")) {
+					price += (r.nextGaussian() * 0.01);
+				} else if (message.equals("F") || message.equals("I")) {
+					price += (r.nextGaussian() * 0.01);
+					if (side == 'B') {
+						if (price > 0) {
+							price = -price;
+						}
+					} else {
+						if (price < 0) {
+							price = -price;
+						}
+					}
+				} else {
+					price += (r.nextGaussian() * 0.06);
+				}
+				int temp = (int) (price * 100);
+				price = temp / 100.0;
 			}
-			// std. dev. = 1
-			price += r.nextGaussian();
-			int temp = (int) (price * 100);
-			price = temp / 100.0;
 			// mean = 100
 			int size = 100;
 			// std. dev. = 25
@@ -67,7 +97,11 @@ public class Agent implements Runnable {
 			if (size < 1) {
 				size = 1;
 			}
-			a += message + " " + side + " " + price + " " + size;
+			if (message.equals("M")) {
+				a += message + " " + side + " " + size;
+			} else {
+				a += message + " " + side + " " + price + " " + size;
+			}
 			try {
 				@SuppressWarnings("unused")
 				OrderBook o = new OrderBook(a);
