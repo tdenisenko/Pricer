@@ -106,12 +106,13 @@ public class Pricer extends Object {
 	// Format: timestamp ID buy/sell
 	// log?
 	public String toString() {
-		String s = "";
+		//String s = "";
+		String s = this.message;
 		s += this.timestamp + "\t";
 		if ((this.message.equals("L") || this.message.equals("T"))
 				&& this.side == 'B') {
 			s += this.orderID + "\t" + this.price + "\t" + this.size;
-		} else if ((this.message.equals("L") || this.message.equals("T"))
+		} else if ((this.message.equals("L") || this.message.equals("T") || this.message.equals("S"))
 				&& this.side == 'S') {
 			s += this.orderID + "\t\t\t\t" + this.price + "\t" + this.size;
 		} else if (this.message.equals("M") && this.side == 'B') {

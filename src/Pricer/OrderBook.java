@@ -7,6 +7,8 @@ import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 
+import javax.sound.midi.SysexMessage;
+
 /*
  * This class creates 2 ArrayLists, ListBuy (Bid orders) and ListSell (Ask orders)
  * And adds the order to a list when an object of it has created.
@@ -21,6 +23,7 @@ public class OrderBook {
 	static int ORDERBOOK_COUNT = 0;
 //	static int TRADE_COUNT = 0;
 	static final int DISPLAY_INTERVAL = 100;
+	static String message = null;
 
 	// Comparator for sorting the orders by price (.00 precision) and by
 	// timestamp if prices are same.
@@ -116,6 +119,8 @@ public class OrderBook {
 	// prints the Order Book once every 100 orders has been submitted.
 	public OrderBook(String a) throws InterruptedException {
 		this.init(a);
+		checkConditionalOrders();
+		//this.message = a;
 		if (OrderBook.ORDERBOOK_COUNT++ % DISPLAY_INTERVAL == 0) {
 			System.out.println(this.toString());
 			//Thread.sleep(5); // Activate if you want to watch it stream
@@ -138,6 +143,15 @@ public class OrderBook {
 	 * 45.40 or lower price but the priority of this order is last compared to
 	 * other orders at same price)
 	 */
+	
+	/*public synchronized void run() {
+		
+	}*/
+	
+	public void checkConditionalOrders() {
+		
+	}
+	
 	public synchronized void init(String a) {
 		Pricer p = null;
 		String message;
@@ -156,6 +170,7 @@ public class OrderBook {
 			price = Double.valueOf(order[3]);
 			size = Integer.valueOf(order[4]);
 			p = new Pricer(message, orderID, side, price, size);
+			//System.err.println(p.toString());
 			add(p);
 			break;
 		case "L":
@@ -163,17 +178,20 @@ public class OrderBook {
 			price = Double.valueOf(order[2]);
 			size = Integer.valueOf(order[3]);
 			p = new Pricer(message, side, price, size);
+			//System.err.println(p.toString());
 			add(p);
 			break;
 		case "R":
 			orderID = order[1];
 			size = Integer.valueOf(order[2]);
 			p = new Pricer(message, orderID, size);
+			//System.err.println(p.toString());
 			reduce(p);
 			break;
 		case "C":
 			orderID = order[1];
 			p = new Pricer(message, orderID);
+			//System.err.println(p.toString());
 			cancel(p);
 			break;
 		case "M":
@@ -185,6 +203,7 @@ public class OrderBook {
 			} else if (p.side == 'B') {
 				p.price = Double.MAX_VALUE;
 			}
+			//System.err.println(p.toString());
 			add(p);
 			break;
 		case "I":
@@ -192,6 +211,7 @@ public class OrderBook {
 			price = Double.valueOf(order[2]);
 			size = Integer.valueOf(order[3]);
 			p = new Pricer(message, side, price, size);
+			//System.err.println(p.toString());
 			ioc(p);
 			break;
 		case "F":
@@ -199,6 +219,7 @@ public class OrderBook {
 			price = Double.valueOf(order[2]);
 			size = Integer.valueOf(order[3]);
 			p = new Pricer(message, side, price, size);
+			//System.err.println(p.toString());
 			fok(p);
 			break;
 		case "H":
@@ -206,6 +227,15 @@ public class OrderBook {
 			price = Double.valueOf(order[2]);
 			size = Integer.valueOf(order[3]);
 			p = new Pricer(message, side, price, size);
+			//System.err.println(p.toString());
+			add(p);
+			break;
+		case "S":
+			side = order[1].charAt(0);
+			price = Double.valueOf(order[2]);
+			size = Integer.valueOf(order[3]);
+			p = new Pricer(message, side, price, size);
+			//System.err.println(p.toString());
 			add(p);
 			break;
 		default:
@@ -520,7 +550,7 @@ public class OrderBook {
 	private synchronized void broadcast() {
 		double weightedPrice = 0;
 		int totalSize = 0;
-		for (int i = 0; i < sizes.size(); i++) {
+		for (int i = 0; i < sizes.size() && i < prices.size(); i++) {
 			weightedPrice += sizes.get(i).doubleValue()
 					* prices.get(i).doubleValue();
 			totalSize += sizes.get(i).intValue();

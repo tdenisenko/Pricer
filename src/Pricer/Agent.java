@@ -51,6 +51,8 @@ public class Agent implements Runnable {
 				message = "M";
 			} else if (rand <= 17.0) {
 				message = "H";
+			} else if (rand <= 23.0) {
+				message = "S";
 			} else {
 				message = "L";
 			}
@@ -63,7 +65,7 @@ public class Agent implements Runnable {
 			}
 			double price = 0.0;
 			// mean = current price
-			if (message.equals("M")) {
+			if (!message.equals("M")) {
 				if (side == 'B') {
 					price = OrderBook.listBuy.get(0).price;
 				} else {
@@ -74,15 +76,22 @@ public class Agent implements Runnable {
 				if (message.equals("H")) {
 					price += (r.nextGaussian() * 0.01);
 				} else if (message.equals("F") || message.equals("I")) {
-					price += (r.nextGaussian() * 0.01);
+					double temp2 = (r.nextGaussian() * 0.01);
 					if (side == 'B') {
-						if (price > 0) {
-							price = -price;
+						if (temp2 > 0) {
+							temp2 = -price;
 						}
 					} else {
-						if (price < 0) {
-							price = -price;
+						if (temp2 < 0) {
+							temp2 = -price;
 						}
+					}
+					price += temp2;
+				} else if (message.equals("S")) {
+					if (side == 'B') {
+						price -= price * 0.05;
+					} else {
+						price += price * 0.05;
 					}
 				} else {
 					price += (r.nextGaussian() * 0.06);
