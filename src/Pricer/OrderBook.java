@@ -6,6 +6,8 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
+import java.util.concurrent.locks.Lock;
+import java.util.concurrent.locks.ReentrantLock;
 
 import javax.sound.midi.SysexMessage;
 
@@ -21,7 +23,7 @@ public class OrderBook {
 
 	// Keeps the count of total orders given
 	static int ORDERBOOK_COUNT = 0;
-//	static int TRADE_COUNT = 0;
+	// static int TRADE_COUNT = 0;
 	static final int DISPLAY_INTERVAL = 100;
 	static String message = null;
 
@@ -59,6 +61,12 @@ public class OrderBook {
 		}
 	};
 
+	static Comparator<Pricer> comparatorCond = new Comparator<Pricer>() {
+		public int compare(Pricer p1, Pricer p2) {
+			return (int) (p1.timestamp - p2.timestamp);
+		}
+	};
+
 	// The Ask List (always sorted and synchronized)
 	static List<Pricer> listSell = Collections
 			.synchronizedList(new ArrayList<Pricer>() {
@@ -75,6 +83,26 @@ public class OrderBook {
 				public boolean add(Pricer p) {
 					super.add(p);
 					Collections.sort(listBuy, comparatorBuy);
+					return true;
+				}
+			});
+
+	// The Ask List for Conditional Orders (always sorted and synchronized)
+	static List<Pricer> listSellCond = Collections
+			.synchronizedList(new ArrayList<Pricer>() {
+				public boolean add(Pricer p) {
+					super.add(p);
+					Collections.sort(listSellCond, comparatorCond);
+					return true;
+				}
+			});
+
+	// The Bid List for Conditional Orders (always sorted and synchronized)
+	static List<Pricer> listBuyCond = Collections
+			.synchronizedList(new ArrayList<Pricer>() {
+				public boolean add(Pricer p) {
+					super.add(p);
+					Collections.sort(listBuyCond, comparatorCond);
 					return true;
 				}
 			});
@@ -114,18 +142,23 @@ public class OrderBook {
 					return true;
 				}
 			});
+	
+	static Lock lock = new ReentrantLock();
 
 	// The constructor. It calls init function once an object is created and
 	// prints the Order Book once every 100 orders has been submitted.
 	public OrderBook(String a) throws InterruptedException {
+		lock.lock();
 		this.init(a);
-		checkConditionalOrders();
-		//this.message = a;
+		if(OrderBook.listSell.size() > 100 && OrderBook.listBuy.size() > 100)
+			checkConditionalOrders();
+		// this.message = a;
 		if (OrderBook.ORDERBOOK_COUNT++ % DISPLAY_INTERVAL == 0) {
 			System.out.println(this.toString());
-			//Thread.sleep(5); // Activate if you want to watch it stream
+			// Thread.sleep(5); // Activate if you want to watch it stream
 		}
 		broadcast();
+		lock.unlock();
 	}
 
 	/*
@@ -143,15 +176,57 @@ public class OrderBook {
 	 * 45.40 or lower price but the priority of this order is last compared to
 	 * other orders at same price)
 	 */
-	
-	/*public synchronized void run() {
-		
-	}*/
-	
-	public void checkConditionalOrders() {
-		
+
+	/*
+	 * public synchronized void run() {
+	 * 
+	 * }
+	 */
+
+	public synchronized void checkConditionalOrders() {
+		char side;
+		double price = 0;
+		int size = 0;
+		String message = "";
+		for (int i = 0; i < listBuyCond.size(); i++) {
+			side = listBuyCond.get(i).side;
+			price = listBuyCond.get(i).price;
+			size = listBuyCond.get(i).size;
+			message = listBuyCond.get(i).message;
+			if (message.equals("S")) {
+				if (price >= OrderBook.listBuy.get(0).price) {
+					listBuyCond.remove(i);
+					i--;
+					message = "M";
+					Pricer p = new Pricer(message, side, size);
+					System.out.println("STOP LOSS!");
+					add(p);
+					checkConditionalOrders();
+					break;
+				}
+			}
+		}
+		for (int i = 0; i < listSellCond.size(); i++) {
+			side = listSellCond.get(i).side;
+			price = listSellCond.get(i).price;
+			size = listSellCond.get(i).size;
+			message = listSellCond.get(i).message;
+			if (message.equals("S")) {
+				if (price >= OrderBook.listSell
+						.get(OrderBook.listSell.size() - 1).price) {
+					listSellCond.remove(i);
+					i--;
+					message = "M";
+					Pricer p = new Pricer(message, side, size);
+					System.out.println("STOP LOSS!");
+					add(p);
+					checkConditionalOrders();
+					break;
+				}
+			}
+		}
 	}
-	
+
 	public synchronized void init(String a) {
 		Pricer p = null;
 		String message;
@@ -170,7 +245,7 @@ public class OrderBook {
 			price = Double.valueOf(order[3]);
 			size = Integer.valueOf(order[4]);
 			p = new Pricer(message, orderID, side, price, size);
-			//System.err.println(p.toString());
+			// System.err.println(p.toString());
 			add(p);
 			break;
 		case "L":
@@ -178,32 +253,27 @@ public class OrderBook {
 			price = Double.valueOf(order[2]);
 			size = Integer.valueOf(order[3]);
 			p = new Pricer(message, side, price, size);
-			//System.err.println(p.toString());
+			// System.err.println(p.toString());
 			add(p);
 			break;
 		case "R":
 			orderID = order[1];
 			size = Integer.valueOf(order[2]);
 			p = new Pricer(message, orderID, size);
-			//System.err.println(p.toString());
+			// System.err.println(p.toString());
 			reduce(p);
 			break;
 		case "C":
 			orderID = order[1];
 			p = new Pricer(message, orderID);
-			//System.err.println(p.toString());
+			// System.err.println(p.toString());
 			cancel(p);
 			break;
 		case "M":
 			side = order[1].charAt(0);
 			size = Integer.valueOf(order[2]);
 			p = new Pricer(message, side, size);
-			if (p.side == 'S') {
-				p.price = Double.MIN_NORMAL;
-			} else if (p.side == 'B') {
-				p.price = Double.MAX_VALUE;
-			}
-			//System.err.println(p.toString());
+			// System.err.println(p.toString());
 			add(p);
 			break;
 		case "I":
@@ -211,7 +281,7 @@ public class OrderBook {
 			price = Double.valueOf(order[2]);
 			size = Integer.valueOf(order[3]);
 			p = new Pricer(message, side, price, size);
-			//System.err.println(p.toString());
+			// System.err.println(p.toString());
 			ioc(p);
 			break;
 		case "F":
@@ -219,7 +289,7 @@ public class OrderBook {
 			price = Double.valueOf(order[2]);
 			size = Integer.valueOf(order[3]);
 			p = new Pricer(message, side, price, size);
-			//System.err.println(p.toString());
+			// System.err.println(p.toString());
 			fok(p);
 			break;
 		case "H":
@@ -227,7 +297,7 @@ public class OrderBook {
 			price = Double.valueOf(order[2]);
 			size = Integer.valueOf(order[3]);
 			p = new Pricer(message, side, price, size);
-			//System.err.println(p.toString());
+			// System.err.println(p.toString());
 			add(p);
 			break;
 		case "S":
@@ -235,8 +305,12 @@ public class OrderBook {
 			price = Double.valueOf(order[2]);
 			size = Integer.valueOf(order[3]);
 			p = new Pricer(message, side, price, size);
-			//System.err.println(p.toString());
-			add(p);
+			// System.err.println(p.toString());
+			if (p.side == 'S') {
+				listSellCond.add(p);
+			} else if (p.side == 'B') {
+				listBuyCond.add(p);
+			}
 			break;
 		default:
 			System.err.println("Wrong order type!");

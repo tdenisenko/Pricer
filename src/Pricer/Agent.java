@@ -89,12 +89,13 @@ public class Agent implements Runnable {
 					price += temp2;
 				} else if (message.equals("S")) {
 					if (side == 'B') {
-						price -= price * 0.05;
-					} else {
 						price += price * 0.05;
+					} else {
+						price -= price * 0.05;
 					}
 				} else {
-					price += (r.nextGaussian() * 0.06);
+					//price += (r.nextGaussian() * 0.06);
+					price += (r.nextGaussian() * 3);
 				}
 				int temp = (int) (price * 100);
 				price = temp / 100.0;

@@ -59,6 +59,11 @@ public class Pricer extends Object {
 		this.side = side;
 		Pricer.NUMBER_OF_ORDERS++;
 		this.size = size;
+		if (this.side == 'S') {
+			this.price = Double.MIN_NORMAL;
+		} else if (this.side == 'B') {
+			this.price = Double.MAX_VALUE;
+		}
 	}
 	
 	// Broadcasts
