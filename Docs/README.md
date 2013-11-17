@@ -10,6 +10,13 @@ Build id: 20130614-0229
 
 This project has 3 classes: Pricer.java, OrderBook.java and Test.java
 
+Update 17 Nov 2013
+---
+
+* Stop-loss and Peg orders are implemented.
+* Engine delay, broadcast delay, agent delay and similar delays added to make the simulation more realistic.
+* Multi-threading improved, now no collisions between threads. (locks are implemented)
+
 Update 02 Oct 2013
 ---
 
