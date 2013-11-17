@@ -26,6 +26,9 @@ public class OrderBook {
 	// static int TRADE_COUNT = 0;
 	static final int DISPLAY_INTERVAL = 100;
 	static String message = null;
+	static double low = 0;
+	static double high = 0;
+	static double last = 0;
 
 	// Comparator for sorting the orders by price (.00 precision) and by
 	// timestamp if prices are same.
@@ -87,25 +90,45 @@ public class OrderBook {
 				}
 			});
 
-	// The Ask List for Conditional Orders (always sorted and synchronized)
-	static List<Pricer> listSellCond = Collections
+	// The Ask List for Stop Loss Orders (always sorted and synchronized)
+	static List<Pricer> listSellStopLoss = Collections
 			.synchronizedList(new ArrayList<Pricer>() {
 				public boolean add(Pricer p) {
 					super.add(p);
-					Collections.sort(listSellCond, comparatorCond);
+					Collections.sort(listSellStopLoss, comparatorCond);
 					return true;
 				}
 			});
 
-	// The Bid List for Conditional Orders (always sorted and synchronized)
-	static List<Pricer> listBuyCond = Collections
+	// The Bid List for Stop Loss Orders (always sorted and synchronized)
+	static List<Pricer> listBuyStopLoss = Collections
 			.synchronizedList(new ArrayList<Pricer>() {
 				public boolean add(Pricer p) {
 					super.add(p);
-					Collections.sort(listBuyCond, comparatorCond);
+					Collections.sort(listBuyStopLoss, comparatorCond);
 					return true;
 				}
 			});
+
+	// // The Ask List for Peg Orders (always sorted and synchronized)
+	// static List<Pricer> listSellPeg = Collections
+	// .synchronizedList(new ArrayList<Pricer>() {
+	// public boolean add(Pricer p) {
+	// super.add(p);
+	// Collections.sort(listSellPeg, comparatorCond);
+	// return true;
+	// }
+	// });
+	//
+	// // The Bid List for Peg Orders (always sorted and synchronized)
+	// static List<Pricer> listBuyPeg = Collections
+	// .synchronizedList(new ArrayList<Pricer>() {
+	// public boolean add(Pricer p) {
+	// super.add(p);
+	// Collections.sort(listBuyPeg, comparatorCond);
+	// return true;
+	// }
+	// });
 
 	// The Temporary List (always sorted and synchronized)
 	static List<Pricer> listTempBuy = Collections
@@ -142,16 +165,27 @@ public class OrderBook {
 					return true;
 				}
 			});
-	
+
 	static Lock lock = new ReentrantLock();
 
 	// The constructor. It calls init function once an object is created and
 	// prints the Order Book once every 100 orders has been submitted.
 	public OrderBook(String a) throws InterruptedException {
 		lock.lock();
+		updatePrices();
+		double tempHigh = OrderBook.high;
+		double tempLow = OrderBook.low;
 		this.init(a);
-		if(OrderBook.listSell.size() > 100 && OrderBook.listBuy.size() > 100)
-			checkConditionalOrders();
+		updatePrices();
+		while (OrderBook.listSell.size() > 100
+				&& OrderBook.listBuy.size() > 100
+				&& (tempHigh != OrderBook.high || tempLow != OrderBook.low)) {
+			tempHigh = OrderBook.high;
+			tempLow = OrderBook.low;
+			checkStopLossOrders();
+			checkPegOrders();
+			updatePrices();
+		}
 		// this.message = a;
 		if (OrderBook.ORDERBOOK_COUNT++ % DISPLAY_INTERVAL == 0) {
 			System.out.println(this.toString());
@@ -182,47 +216,94 @@ public class OrderBook {
 	 * 
 	 * }
 	 */
-	
 
-	public synchronized void checkConditionalOrders() {
+	public synchronized static void updatePrices() {
+		if (OrderBook.listSell.size() > 0) {
+			OrderBook.high = OrderBook.listSell
+					.get(OrderBook.listSell.size() - 1).price;
+		}
+		if (OrderBook.listBuy.size() > 0) {
+			OrderBook.low = OrderBook.listBuy.get(0).price;
+		}
+	}
+
+	public synchronized void checkStopLossOrders() {
 		char side;
 		double price = 0;
 		int size = 0;
 		String message = "";
-		for (int i = 0; i < listBuyCond.size(); i++) {
-			side = listBuyCond.get(i).side;
-			price = listBuyCond.get(i).price;
-			size = listBuyCond.get(i).size;
-			message = listBuyCond.get(i).message;
+		for (int i = 0; i < listBuyStopLoss.size(); i++) {
+			side = listBuyStopLoss.get(i).side;
+			price = listBuyStopLoss.get(i).price;
+			size = listBuyStopLoss.get(i).size;
+			message = listBuyStopLoss.get(i).message;
 			if (message.equals("S")) {
-				if (price >= OrderBook.listBuy.get(0).price) {
-					listBuyCond.remove(i);
+				if (price <= OrderBook.listBuy.get(0).price) {
+					listBuyStopLoss.remove(i);
 					i--;
 					message = "M";
 					Pricer p = new Pricer(message, side, size);
 					System.out.println("STOP LOSS!");
 					add(p);
-					checkConditionalOrders();
+					checkStopLossOrders();
 					break;
 				}
 			}
 		}
-		for (int i = 0; i < listSellCond.size(); i++) {
-			side = listSellCond.get(i).side;
-			price = listSellCond.get(i).price;
-			size = listSellCond.get(i).size;
-			message = listSellCond.get(i).message;
+		for (int i = 0; i < listSellStopLoss.size(); i++) {
+			side = listSellStopLoss.get(i).side;
+			price = listSellStopLoss.get(i).price;
+			size = listSellStopLoss.get(i).size;
+			message = listSellStopLoss.get(i).message;
 			if (message.equals("S")) {
 				if (price >= OrderBook.listSell
 						.get(OrderBook.listSell.size() - 1).price) {
-					listSellCond.remove(i);
+					listSellStopLoss.remove(i);
 					i--;
 					message = "M";
 					Pricer p = new Pricer(message, side, size);
 					System.out.println("STOP LOSS!");
 					add(p);
-					checkConditionalOrders();
+					checkStopLossOrders();
 					break;
+				}
+			}
+		}
+	}
+
+	public synchronized void checkPegOrders() {
+		char side;
+		double price = 0;
+		double limit = 0;
+		int size = 0;
+		String message = "";
+		for (int i = 0; i < listBuy.size(); i++) {
+			side = listBuy.get(i).side;
+			price = listBuy.get(i).price;
+			size = listBuy.get(i).size;
+			message = listBuy.get(i).message;
+			if (message.equals("P")) {
+				limit = listBuy.get(i).limit;
+				if (limit >= OrderBook.listBuy.get(0).price) {
+					listBuy.get(i).price = OrderBook.listBuy.get(0).price;
+				} else {
+					listBuy.get(i).price = limit;
+				}
+			}
+		}
+		for (int i = 0; i < listSell.size(); i++) {
+			side = listSell.get(i).side;
+			price = listSell.get(i).price;
+			size = listSell.get(i).size;
+			message = listSell.get(i).message;
+			if (message.equals("P")) {
+				limit = listSell.get(i).limit;
+				if (price <= OrderBook.listSell
+						.get(OrderBook.listSell.size() - 1).price) {
+					listSell.get(i).price = OrderBook.listSell
+							.get(OrderBook.listSell.size() - 1).price;
+				} else {
+					price = limit;
 				}
 			}
 		}
@@ -233,6 +314,7 @@ public class OrderBook {
 		String message;
 		char side;
 		double price;
+		double limit;
 		String orderID;
 		int size;
 		// Splits order by white spaces
@@ -308,10 +390,25 @@ public class OrderBook {
 			p = new Pricer(message, side, price, size);
 			// System.err.println(p.toString());
 			if (p.side == 'S') {
-				listSellCond.add(p);
+				listSellStopLoss.add(p);
 			} else if (p.side == 'B') {
-				listBuyCond.add(p);
+				listBuyStopLoss.add(p);
 			}
+			break;
+		case "P":
+			side = order[1].charAt(0);
+			limit = Double.valueOf(order[2]);
+			size = Integer.valueOf(order[3]);
+			price = limit;
+			if (side == 'S') {
+				if (limit <= OrderBook.high)
+					price = OrderBook.high;
+			} else {
+				if (limit >= OrderBook.low)
+					price = OrderBook.low;
+			}
+			p = new Pricer(message, side, price, size, limit);
+			add(p);
 			break;
 		default:
 			System.err.println("Wrong order type!");
@@ -635,6 +732,9 @@ public class OrderBook {
 		if (totalSize > 0 || weightedPrice > 0.0) {
 			System.out.println("\nTrade:\tTimestamp\tAmount\tPrice\n\t"
 					+ p.timestamp + "\t" + p.size + "\t" + p.price);
+			OrderBook.last = p.price;
+			System.out.println("High: " + OrderBook.high + "\nLow: "
+					+ OrderBook.low + "\nLast: " + OrderBook.last);
 		}
 		sizes.clear();
 		prices.clear();

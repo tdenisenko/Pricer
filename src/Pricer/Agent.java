@@ -53,6 +53,8 @@ public class Agent implements Runnable {
 				message = "H";
 			} else if (rand <= 23.0) {
 				message = "S";
+			} else if (rand <= 28.0) {
+				message = "P";
 			} else {
 				message = "L";
 			}
@@ -88,6 +90,12 @@ public class Agent implements Runnable {
 					}
 					price += temp2;
 				} else if (message.equals("S")) {
+					if (side == 'B') {
+						price += price * 0.05;
+					} else {
+						price -= price * 0.05;
+					}
+				} else if (message.equals("P")) {
 					if (side == 'B') {
 						price += price * 0.05;
 					} else {

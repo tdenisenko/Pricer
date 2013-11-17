@@ -12,6 +12,7 @@ public class Pricer extends Object {
 	String orderID; // An ID which may include alphanumeric characters
 	char side; // "S" for sell(ask) "B" for buy(bid)
 	double price; // Price with a precision of .00
+	double limit;
 	int size; // Size of the order
 
 	// temp constructor (for pricer.in)
@@ -32,6 +33,17 @@ public class Pricer extends Object {
 		this.orderID = IntToLetter(Pricer.NUMBER_OF_ORDERS++);
 		this.side = side;
 		this.price = price;
+		this.size = size;
+	}
+	
+	//Peg orders
+	public Pricer(String message, char side, double price, int size, double limit) {
+		setCurrentTimestamp(this);
+		this.message = message;
+		this.orderID = IntToLetter(Pricer.NUMBER_OF_ORDERS++);
+		this.side = side;
+		this.price = price;
+		this.limit = limit;
 		this.size = size;
 	}
 
@@ -114,10 +126,10 @@ public class Pricer extends Object {
 		//String s = "";
 		String s = this.message;
 		s += this.timestamp + "\t";
-		if ((this.message.equals("L") || this.message.equals("T"))
+		if ((this.message.equals("L") || this.message.equals("T") || this.message.equals("S") || this.message.equals("P"))
 				&& this.side == 'B') {
 			s += this.orderID + "\t" + this.price + "\t" + this.size;
-		} else if ((this.message.equals("L") || this.message.equals("T") || this.message.equals("S"))
+		} else if ((this.message.equals("L") || this.message.equals("T") || this.message.equals("S") || this.message.equals("P"))
 				&& this.side == 'S') {
 			s += this.orderID + "\t\t\t\t" + this.price + "\t" + this.size;
 		} else if (this.message.equals("M") && this.side == 'B') {
