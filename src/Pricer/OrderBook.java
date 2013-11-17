@@ -182,6 +182,7 @@ public class OrderBook {
 	 * 
 	 * }
 	 */
+	
 
 	public synchronized void checkConditionalOrders() {
 		char side;
